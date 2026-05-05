@@ -9,11 +9,14 @@ collect_day=""
 common_key=""
 devotion_key=""
 vim_mode="false"
+compact_mode="false"
 
 args=()
 for arg in "$@"; do
   if [[ "$arg" == "--vim" ]]; then
     vim_mode="true"
+  elif [[ "$arg" == "--compact" ]]; then
+    compact_mode="true"
   else
     args+=("$arg")
   fi
@@ -22,7 +25,7 @@ done
 if [[ ${#args[@]} -gt 2 ]]; then
   printf 'Usage: %s [YYYY-MM-DD] [morning|evening]\n' "${0##*/}" >&2
   printf '       %s [morning|evening]\n' "${0##*/}" >&2
-  printf '       %s [--vim] [YYYY-MM-DD] [morning|evening]\n' "${0##*/}" >&2
+  printf '       %s [--vim] [--compact] [YYYY-MM-DD] [morning|evening]\n' "${0##*/}" >&2
   printf '       %s [--vim] collect [weekday|all]\n' "${0##*/}" >&2
   printf '       %s [--vim] common [key|all]\n' "${0##*/}" >&2
   printf '       %s [--vim] devotion [key|all]\n' "${0##*/}" >&2
@@ -84,7 +87,7 @@ month_slug="$(printf '%s' "$month_name" | tr '[:upper:]' '[:lower:]')"
 csv_path="${BCP_CSV:-"$script_dir/${month_slug}_${office}.csv"}"
 collects_path="${BCP_COLLECTS:-"$script_dir/collects.yaml"}"
 
-python3 - "$date_arg" "$office" "$csv_path" "$collects_path" "$mode" "$collect_day" "$vim_mode" "$common_key" "$devotion_key" <<'PY'
+python3 - "$date_arg" "$office" "$csv_path" "$collects_path" "$mode" "$collect_day" "$vim_mode" "$common_key" "$devotion_key" "$compact_mode" <<'PY'
 from __future__ import annotations
 
 import csv
@@ -109,6 +112,7 @@ COLLECT_DAY = sys.argv[6].lower()
 VIM_MODE = sys.argv[7] == "true"
 COMMON_KEY = sys.argv[8].lower()
 DEVOTION_KEY = sys.argv[9].lower()
+COMPACT_MODE = sys.argv[10] == "true"
 API_ROOT = "https://bible-api.com"
 WRAP_WIDTH = 78
 
@@ -172,7 +176,7 @@ def usage_error(message: str) -> None:
         f"{message}\n"
         "Usage: bcp.sh [YYYY-MM-DD] [morning|evening]\n"
         "       bcp.sh [morning|evening]\n"
-        "       bcp.sh [--vim] [YYYY-MM-DD] [morning|evening]\n"
+        "       bcp.sh [--vim] [--compact] [YYYY-MM-DD] [morning|evening]\n"
         "       bcp.sh [--vim] collect [weekday|all]\n"
         "       bcp.sh [--vim] common [key|all]\n"
         "       bcp.sh [--vim] devotion [key|all]\n"
@@ -573,18 +577,27 @@ def format_passage(label: str, ref: str) -> str:
 
     lines = [label, ref, "-" * len(ref)]
     current_chapter = None
+    paragraph_parts: list[str] = []
     for verse in verses:
         chapter = verse["chapter"]
         if chapter != current_chapter:
+            if paragraph_parts:
+                lines.append(textwrap.fill(" ".join(paragraph_parts), width=WRAP_WIDTH))
+                paragraph_parts = []
             current_chapter = chapter
             lines.extend(["", f"{verse['book_name']} {chapter}"])
         text = " ".join(verse["text"].split())
+        if COMPACT_MODE and label != "Psalm":
+            paragraph_parts.append(f"[{verse['verse']}] {text}")
+            continue
         wrapped = textwrap.fill(
             f"{verse['verse']}. {text}",
             width=WRAP_WIDTH,
             subsequent_indent="    ",
         )
         lines.append(wrapped)
+    if paragraph_parts:
+        lines.append(textwrap.fill(" ".join(paragraph_parts), width=WRAP_WIDTH))
     return "\n".join(lines) + "\n"
 
 

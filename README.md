@@ -225,7 +225,11 @@ Read a specific date:
 bcp 2026-05-05
 bcp 2026-05-05 morning
 bcp 2026-05-05 evening
+bcp 2026-05-05 morning --compact
 ```
+
+Add `--compact` to Morning or Evening Prayer to render lessons as wrapped
+paragraphs with inline verse markers. Psalms remain verse-broken.
 
 Read the weekday collect:
 
@@ -291,12 +295,14 @@ bcp notes
 ## Vim-Style Reader
 
 Add `--vim` to Morning or Evening Prayer, or to the `collect`, `common`, and
-`devotion` commands when printing a specific item or `all`:
+`devotion` commands when printing a specific item or `all`. `--compact` can be
+combined with `--vim` for Morning or Evening Prayer:
 
 ```sh
 bcp --vim
 bcp --vim morning
 bcp 2026-05-05 evening --vim
+bcp 2026-05-05 morning --compact --vim
 bcp collect all --vim
 bcp common all --vim
 bcp devotion all --vim
