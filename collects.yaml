@@ -95,3 +95,239 @@ daily:
       day upon us who watch for you, that our lips may praise you,
       our lives may bless you, and our worship on the morrow give
       you glory; through Jesus Christ our Lord. Amen.
+
+common_prayers:
+  lords_prayer:
+    title: The Lord's Prayer
+    text: |
+      Our Father, who art in heaven,
+      hallowed be thy Name,
+      thy kingdom come,
+      thy will be done,
+      on earth as it is in heaven.
+      Give us this day our daily bread.
+      And forgive us our trespasses,
+      as we forgive those
+      who trespass against us.
+      And lead us not into temptation,
+      but deliver us from evil.
+      For thine is the kingdom,
+      and the power, and the glory,
+      for ever and ever. Amen.
+
+  apostles_creed:
+    title: The Apostles' Creed
+    text: |
+      I believe in God, the Father almighty,
+      creator of heaven and earth.
+      I believe in Jesus Christ, his only Son, our Lord.
+      He was conceived by the Holy Spirit
+      and born of the Virgin Mary.
+      He suffered under Pontius Pilate,
+      was crucified, died, and was buried.
+      He descended to the dead.
+      On the third day he rose again.
+      He ascended into heaven,
+      and is seated at the right hand of the Father.
+      He will come again to judge the living and the dead.
+      I believe in the Holy Spirit,
+      the holy catholic Church,
+      the communion of saints,
+      the forgiveness of sins,
+      the resurrection of the body,
+      and the life everlasting. Amen.
+
+  nicene_creed:
+    title: The Nicene Creed
+    text: |
+      We believe in one God,
+      the Father, the Almighty,
+      maker of heaven and earth,
+      of all that is, visible and invisible.
+      We believe in one Lord, Jesus Christ,
+      the only-begotten Son of God,
+      eternally begotten of the Father,
+      God from God, Light from Light,
+      true God from true God,
+      begotten, not made,
+      of one Being with the Father;
+      through him all things were made.
+      For us and for our salvation he came down from heaven,
+      was incarnate from the Holy Spirit and the Virgin Mary,
+      and was made man.
+      For our sake he was crucified under Pontius Pilate;
+      he suffered death and was buried.
+      On the third day he rose again in accordance with the Scriptures;
+      he ascended into heaven
+      and is seated at the right hand of the Father.
+      He will come again in glory to judge the living and the dead,
+      and his kingdom will have no end.
+      We believe in the Holy Spirit, the Lord, the giver of life,
+      who proceeds from the Father [and the Son],
+      who with the Father and the Son is worshiped and glorified,
+      who has spoken through the prophets.
+      We believe in one holy catholic and apostolic Church.
+      We acknowledge one Baptism for the forgiveness of sins.
+      We look for the resurrection of the dead,
+      and the life of the world to come. Amen.
+
+  agnus_dei:
+    title: The Agnus Dei
+    text: |
+      Lamb of God, you take away the sin of the world;
+      have mercy on us.
+      Lamb of God, you take away the sin of the world;
+      have mercy on us.
+      Lamb of God, you take away the sin of the world;
+      grant us your peace.
+
+  confession:
+    title: Confession
+    text: |
+      Almighty God and Father, we confess to you,
+      to one another, and to the whole company of heaven,
+      that we have sinned, through our own fault,
+      in thought, and word, and deed,
+      and in what we have left undone.
+      For the sake of your Son our Lord Jesus Christ,
+      have mercy upon us, forgive us our sins,
+      and by the power of your Holy Spirit
+      raise us up to serve you in newness of life,
+      to the glory of your Name. Amen.
+
+  collect_for_purity:
+    title: The Collect for Purity
+    text: |
+      Almighty God, to you all hearts are open, all desires known,
+      and from you no secrets are hid: Cleanse the thoughts of our
+      hearts by the inspiration of your Holy Spirit, that we may
+      perfectly love you, and worthily magnify your holy Name;
+      through Christ our Lord. Amen.
+
+  at_night:
+    title: At Night
+    text: |
+      O Lord, support us all the day long through this trouble-filled
+      life, until the shadows lengthen, and the evening comes, and the
+      busy world is hushed, and the fever of life is over, and our work
+      is done. Then in your mercy grant us a safe lodging, and a holy
+      rest, and peace at the last. Amen.
+
+  be_present:
+    title: Be Present
+    text: |
+      Be present, O merciful God, and protect us through the hours
+      of this night, so that we who are wearied by the changes and
+      chances of this life may rest in your eternal changelessness;
+      through Jesus Christ our Lord. Amen.
+
+  for_sleep:
+    title: For Sleep
+    text: |
+      Father, in your mercy dispel the darkness of this night, and let
+      your servant sleep in peace, that at the dawn of a new day I may
+      wake with joy in your Name; through Christ our Lord. Amen.
+
+devotions:
+  participation:
+    title: For Participation in the Peace of God
+    author: In the Tradition of Francis of Assisi
+    text: |
+      Lord, make me an instrument of your peace: where there is
+      hatred, let me sow love; where there is injury, pardon; where
+      there is discord, union; where there is error, truth; where
+      there is doubt, faith; where there is despair, hope; where
+      there is darkness, light; where there is sadness, joy. O divine
+      Master, grant that I may seek not so much to be consoled as
+      to console, to be understood as to understand, to be loved as
+      to love. For it is in giving that we receive, it is in pardoning
+      that we are pardoned, and it is in dying that we are born to
+      eternal life. Amen.
+
+  daily_growth:
+    title: For Daily Growth
+    author: Richard of Chichester
+    text: |
+      Thanks be to thee, my Lord Jesus Christ, for all the pains and
+      insults thou hast borne for me, and all the benefits thou hast
+      given me. O most merciful Redeemer, Friend, and Brother:
+      Grant that I may see thee more clearly, love thee more dearly,
+      and follow thee more nearly, day by day. Amen.
+
+  seeking_god:
+    title: For Seeking God
+    author: Anselm of Canterbury
+    text: |
+      Teach me to seek you, and as I seek you, show yourself to me;
+      for I cannot seek you unless you show me how, and I will never
+      find you unless you show yourself to me. Let me seek you by
+      desiring you, and desire you by seeking you; let me find you by
+      loving you, and love you in finding you. Amen.
+
+  grace_to_seek:
+    title: For Grace to Seek God in Every Way
+    author: Benedict of Nursia
+    text: |
+      Gracious and holy Father, please give me intellect to understand
+      you, reason to discern you, diligence to seek you, wisdom to find
+      you, a spirit to know you, a heart to meditate upon you, ears to
+      hear you, eyes to see you, a tongue to proclaim you, a way of
+      life pleasing to you, patience to wait for you, and perseverance
+      to look for you. Grant me a perfect end, your holy presence, a
+      blessed resurrection, and life everlasting. Amen.
+
+  submission:
+    title: For Submission to God's Will
+    author: Joseph Mercier
+    text: |
+      O Holy Spirit, beloved of my soul, I adore you. Enlighten me,
+      guide me, strengthen me, console me. Tell me what I should do;
+      give me your orders. I promise to submit myself to all that you
+      desire of me and to accept all that you permit to happen to me.
+      Let me only know your will. Amen.
+
+  satisfaction:
+    title: For Satisfaction in Christ
+    author: Julian of Norwich
+    text: |
+      O God, of your goodness, give me yourself, for you are enough
+      for me. I can ask for nothing less that is completely to your
+      honor, and if I do ask anything less, I shall always be in want.
+      Only in you I have all. Amen.
+
+  covenant_prayer:
+    title: A Covenant Prayer
+    author: John Wesley
+    text: |
+      I am no longer my own, but thine. Put me to what thou wilt,
+      rank me with whom thou wilt. Put me to doing, put me to
+      suffering. Let me be employed by thee or laid aside for thee,
+      exalted for thee or brought low for thee. Let me be full, let me
+      be empty. Let me have all things, let me have nothing. I freely
+      and heartily yield all things to thy pleasure and disposal. And
+      now, O glorious and blessed God, Father, Son, and Holy Spirit,
+      thou art mine, and I am thine. So be it. And the covenant which
+      I have made on earth, let it be ratified in heaven. Amen.
+
+  virtuous:
+    title: For a Virtuous Heart
+    author: Thomas Aquinas
+    text: |
+      Give me, O Lord, a steadfast heart, which no unworthy thought
+      can drag down; an unconquered heart, which no tribulation
+      can wear out; an upright heart, which no unworthy purpose
+      can tempt aside. Bestow upon me understanding to know you,
+      diligence to seek you, wisdom to find you, and faithfulness that
+      finally may embrace you. Amen.
+
+  union:
+    title: For Union with Christ
+    author: Anima Christi
+    text: |
+      Soul of Christ, sanctify me. Body of Christ, save me. Blood
+      of Christ, inebriate me. Water from the side of Christ, wash
+      me. Passion of Christ, strengthen me. O good Jesus, hear me.
+      Within thy wounds hide me. Permit me not to be separated
+      from thee. From the wicked foe defend me. In the hour of my
+      death call me, and bid me come to thee, that with thy saints I
+      may praise thee for ever and ever. Amen.

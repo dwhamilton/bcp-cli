@@ -18,6 +18,7 @@ shape is likely a small installable Python CLI.
 - public-domain KJV Bible text fetched from `bible-api.com`
 - office collects before the readings
 - weekday collect lookup as a separate command
+- common prayers and creeds as a separate command
 - optional vim-style terminal reader
 - persistent Markdown notes
 - local-first design with no accounts or sync
@@ -48,6 +49,7 @@ Implemented:
 - public-domain KJV Bible text lookup through `bible-api.com`
 - office collects before the readings
 - weekday collect lookup as a separate command
+- common prayer lookup as a separate command
 - a `--vim` terminal reader mode
 - notes support through `bcp note` and the `m` key in `--vim` mode
 
@@ -101,6 +103,10 @@ bcp morning
 bcp evening
 bcp 2026-05-05 morning
 bcp 2026-06-24 evening
+bcp common
+bcp common lords-prayer
+bcp devotion
+bcp devotion wesley
 bcp note
 bcp notes
 ```
@@ -227,10 +233,53 @@ Read the weekday collect:
 bcp collect
 bcp collect saturday
 bcp collect sat
+bcp collect all
 ```
 
 Short weekday names are supported, such as `sun`, `mon`, `tue`, `wed`, `thu`,
 `fri`, and `sat`.
+
+List common prayers:
+
+```sh
+bcp common
+```
+
+Print a common prayer:
+
+```sh
+bcp common lords-prayer
+bcp common apostles-creed
+bcp common nicene-creed
+bcp common agnus-dei
+bcp common confession
+bcp common purity
+bcp common night
+bcp common be-present
+bcp common sleep
+bcp common all
+```
+
+List personal devotions:
+
+```sh
+bcp devotion
+```
+
+Print a devotion:
+
+```sh
+bcp devotion peace
+bcp devotion daily-growth
+bcp devotion seeking-god
+bcp devotion grace-to-seek
+bcp devotion satisfaction
+bcp devotion submission
+bcp devotion wesley
+bcp devotion virtuous
+bcp devotion union
+bcp devotion all
+```
 
 Open the notes file:
 
@@ -241,12 +290,16 @@ bcp notes
 
 ## Vim-Style Reader
 
-Add `--vim` to Morning or Evening Prayer:
+Add `--vim` to Morning or Evening Prayer, or to the `collect`, `common`, and
+`devotion` commands when printing a specific item or `all`:
 
 ```sh
 bcp --vim
 bcp --vim morning
 bcp 2026-05-05 evening --vim
+bcp collect all --vim
+bcp common all --vim
+bcp devotion all --vim
 ```
 
 Each element appears on its own cleared terminal page:
@@ -255,6 +308,7 @@ Each element appears on its own cleared terminal page:
 - each psalm
 - first lesson
 - second lesson
+- each collect, common prayer, or devotion when using `all`
 
 Controls:
 
@@ -339,6 +393,8 @@ july_evening.csv
 
 - office collects for Morning and Evening Prayer
 - weekday collects used by `bcp collect`
+- common prayers used by `bcp common`
+- personal devotions used by `bcp devotion`
 
 ## Configuration
 

@@ -6,6 +6,8 @@ date_arg="$(date +%F)"
 office="evening"
 mode="readings"
 collect_day=""
+common_key=""
+devotion_key=""
 vim_mode="false"
 
 args=()
@@ -21,7 +23,9 @@ if [[ ${#args[@]} -gt 2 ]]; then
   printf 'Usage: %s [YYYY-MM-DD] [morning|evening]\n' "${0##*/}" >&2
   printf '       %s [morning|evening]\n' "${0##*/}" >&2
   printf '       %s [--vim] [YYYY-MM-DD] [morning|evening]\n' "${0##*/}" >&2
-  printf '       %s collect [weekday]\n' "${0##*/}" >&2
+  printf '       %s [--vim] collect [weekday|all]\n' "${0##*/}" >&2
+  printf '       %s [--vim] common [key|all]\n' "${0##*/}" >&2
+  printf '       %s [--vim] devotion [key|all]\n' "${0##*/}" >&2
   printf '       %s note|notes\n' "${0##*/}" >&2
   exit 1
 fi
@@ -29,6 +33,10 @@ fi
 if [[ ${#args[@]} -eq 1 ]]; then
   if [[ "${args[0]}" == "collect" ]]; then
     mode="collect"
+  elif [[ "${args[0]}" == "common" ]]; then
+    mode="common"
+  elif [[ "${args[0]}" == "devotion" ]]; then
+    mode="devotion"
   elif [[ "${args[0]}" == "note" || "${args[0]}" == "notes" ]]; then
     mode="note"
   elif [[ "${args[0]}" == "morning" || "${args[0]}" == "evening" ]]; then
@@ -40,15 +48,21 @@ elif [[ ${#args[@]} -eq 2 ]]; then
   if [[ "${args[0]}" == "collect" ]]; then
     mode="collect"
     collect_day="${args[1]}"
+  elif [[ "${args[0]}" == "common" ]]; then
+    mode="common"
+    common_key="${args[1]}"
+  elif [[ "${args[0]}" == "devotion" ]]; then
+    mode="devotion"
+    devotion_key="${args[1]}"
   else
     date_arg="${args[0]}"
     office="${args[1]}"
   fi
 fi
 
-if [[ "$mode" != "readings" && "$vim_mode" == "true" ]]; then
-  printf 'Usage: %s [collect [weekday]|note|notes]\n' "${0##*/}" >&2
-  printf '%s\n' '--vim is only supported for morning and evening readings.' >&2
+if [[ "$mode" == "note" && "$vim_mode" == "true" ]]; then
+  printf 'Usage: %s note|notes\n' "${0##*/}" >&2
+  printf '%s\n' '--vim is not supported for note|notes.' >&2
   exit 1
 fi
 
@@ -64,7 +78,7 @@ month_slug="$(printf '%s' "$month_name" | tr '[:upper:]' '[:lower:]')"
 csv_path="${BCP_CSV:-"$script_dir/${month_slug}_${office}.csv"}"
 collects_path="${BCP_COLLECTS:-"$script_dir/collects.yaml"}"
 
-python3 - "$date_arg" "$office" "$csv_path" "$collects_path" "$mode" "$collect_day" "$vim_mode" <<'PY'
+python3 - "$date_arg" "$office" "$csv_path" "$collects_path" "$mode" "$collect_day" "$vim_mode" "$common_key" "$devotion_key" <<'PY'
 from __future__ import annotations
 
 import csv
@@ -87,6 +101,8 @@ COLLECTS_PATH = Path(sys.argv[4])
 MODE = sys.argv[5]
 COLLECT_DAY = sys.argv[6].lower()
 VIM_MODE = sys.argv[7] == "true"
+COMMON_KEY = sys.argv[8].lower()
+DEVOTION_KEY = sys.argv[9].lower()
 API_ROOT = "https://bible-api.com"
 WRAP_WIDTH = 78
 
@@ -151,7 +167,9 @@ def usage_error(message: str) -> None:
         "Usage: bcp.sh [YYYY-MM-DD] [morning|evening]\n"
         "       bcp.sh [morning|evening]\n"
         "       bcp.sh [--vim] [YYYY-MM-DD] [morning|evening]\n"
-        "       bcp.sh collect [weekday]\n"
+        "       bcp.sh [--vim] collect [weekday|all]\n"
+        "       bcp.sh [--vim] common [key|all]\n"
+        "       bcp.sh [--vim] devotion [key|all]\n"
         "       bcp.sh note|notes"
     )
 
@@ -301,6 +319,165 @@ def print_collect(title: str, text: str) -> None:
     print(format_collect(title, text))
 
 
+def format_prayer(title: str, text: str) -> str:
+    heading = title or "A Prayer"
+    body = text.strip()
+    return f"{heading}\n{'-' * len(heading)}\n{body}\n"
+
+
+def print_prayer(title: str, text: str) -> None:
+    print(format_prayer(title, text))
+
+
+def show_pages(pages: list[tuple[str, str]]) -> None:
+    if VIM_MODE:
+        vim_pager(pages, default_memo_path())
+        return
+    for _, body in pages:
+        print(body)
+
+
+def normalize_common_key(value: str) -> str:
+    aliases = {
+        "lord": "lords_prayer",
+        "lords": "lords_prayer",
+        "lord-prayer": "lords_prayer",
+        "lords-prayer": "lords_prayer",
+        "lords_prayer": "lords_prayer",
+        "our-father": "lords_prayer",
+        "our_father": "lords_prayer",
+        "apostle": "apostles_creed",
+        "apostles": "apostles_creed",
+        "apostles-creed": "apostles_creed",
+        "apostles_creed": "apostles_creed",
+        "nicene": "nicene_creed",
+        "nicene-creed": "nicene_creed",
+        "nicene_creed": "nicene_creed",
+        "agnus": "agnus_dei",
+        "agnus-dei": "agnus_dei",
+        "agnus_dei": "agnus_dei",
+        "purity": "collect_for_purity",
+        "collect-purity": "collect_for_purity",
+        "collect-for-purity": "collect_for_purity",
+        "collect_for_purity": "collect_for_purity",
+        "night": "at_night",
+        "at-night": "at_night",
+        "at_night": "at_night",
+        "present": "be_present",
+        "be-present": "be_present",
+        "be_present": "be_present",
+        "sleep": "for_sleep",
+        "for-sleep": "for_sleep",
+        "for_sleep": "for_sleep",
+        "confess": "confession",
+        "confession": "confession",
+    }
+    return aliases.get(value, value.replace("-", "_"))
+
+
+def print_common_prayers() -> None:
+    collects = load_collects()
+    common = collects.get("common_prayers", {})
+    if not common:
+        usage_error("No common prayers found.")
+
+    if COMMON_KEY == "all":
+        pages = []
+        for key, prayer in common.items():
+            title = prayer.get("title", key)
+            pages.append((title, format_prayer(title, prayer.get("text", ""))))
+        show_pages(pages)
+        return
+
+    if COMMON_KEY:
+        key = normalize_common_key(COMMON_KEY)
+        prayer = common.get(key)
+        if not prayer:
+            available = ", ".join(sorted(common.keys()))
+            usage_error(f"No common prayer found for {COMMON_KEY!r}. Available: {available}")
+        print_prayer(prayer.get("title", key), prayer.get("text", ""))
+        return
+
+    print("Common Prayers")
+    print("--------------")
+    for key, prayer in common.items():
+        title = prayer.get("title", "")
+        print(f"{key}: {title}")
+    print()
+
+
+def normalize_devotion_key(value: str) -> str:
+    aliases = {
+        "peace": "participation",
+        "francis": "participation",
+        "participation": "participation",
+        "daily": "daily_growth",
+        "growth": "daily_growth",
+        "daily-growth": "daily_growth",
+        "richard": "daily_growth",
+        "seeking": "seeking_god",
+        "seeking-god": "seeking_god",
+        "anselm": "seeking_god",
+        "seek": "grace_to_seek",
+        "grace": "grace_to_seek",
+        "grace-to-seek": "grace_to_seek",
+        "benedict": "grace_to_seek",
+        "submission": "submission",
+        "will": "submission",
+        "mercier": "submission",
+        "satisfaction": "satisfaction",
+        "christ": "satisfaction",
+        "julian": "satisfaction",
+        "covenant": "covenant_prayer",
+        "wesley": "covenant_prayer",
+        "heart": "virtuous",
+        "virtuous": "virtuous",
+        "aquinas": "virtuous",
+        "union": "union",
+        "anima": "union",
+        "anima-christi": "union",
+    }
+    return aliases.get(value, value.replace("-", "_"))
+
+
+def print_devotion() -> None:
+    collects = load_collects()
+    devotions = collects.get("devotions", {})
+    if not devotions:
+        usage_error("No devotions found.")
+
+    if DEVOTION_KEY == "all":
+        pages = []
+        for key, devotion in devotions.items():
+            title = devotion.get("title", key)
+            author = devotion.get("author", "")
+            heading = f"{title} - {author}" if author else title
+            pages.append((title, format_prayer(heading, devotion.get("text", ""))))
+        show_pages(pages)
+        return
+
+    if DEVOTION_KEY:
+        key = normalize_devotion_key(DEVOTION_KEY)
+        devotion = devotions.get(key)
+        if not devotion:
+            available = ", ".join(sorted(devotions.keys()))
+            usage_error(f"No devotion found for {DEVOTION_KEY!r}. Available: {available}")
+        title = devotion.get("title", key)
+        author = devotion.get("author", "")
+        heading = f"{title} - {author}" if author else title
+        print_prayer(heading, devotion.get("text", ""))
+        return
+
+    print("Devotions")
+    print("---------")
+    for key, devotion in devotions.items():
+        title = devotion.get("title", "")
+        author = devotion.get("author", "")
+        suffix = f" - {author}" if author else ""
+        print(f"{key}: {title}{suffix}")
+    print()
+
+
 def normalize_weekday(value: str, date: datetime) -> str:
     if not value:
         return date.strftime("%A").lower()
@@ -331,6 +508,23 @@ def normalize_weekday(value: str, date: datetime) -> str:
 
 def print_daily_collect(date: datetime) -> None:
     collects = load_collects()
+    if COLLECT_DAY == "all":
+        daily = collects.get("daily", {})
+        order = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+        pages = []
+        for weekday in order:
+            collect = daily.get(weekday)
+            if not collect:
+                continue
+            title = collect.get("title", "")
+            weekday_title = weekday.title()
+            heading = f"{title} - {weekday_title}" if title else weekday_title
+            pages.append((weekday_title, format_collect(heading, collect.get("text", ""))))
+        if not pages:
+            usage_error("No daily collects found.")
+        show_pages(pages)
+        return
+
     weekday = normalize_weekday(COLLECT_DAY, date)
     daily_collect = collects.get("daily", {}).get(weekday)
     if not daily_collect:
@@ -470,11 +664,11 @@ def open_notes() -> None:
 def vim_pager(
     pages: list[tuple[str, str]],
     memo_path: Path,
-    date: datetime,
-    office_title: str,
-    psalms: list[str],
-    first: str,
-    second: str,
+    date: datetime | None = None,
+    office_title: str = "",
+    psalms: list[str] | None = None,
+    first: str = "",
+    second: str = "",
 ) -> None:
     if not sys.stdout.isatty():
         usage_error("--vim requires an interactive terminal.")
@@ -524,9 +718,14 @@ def vim_pager(
 
         header = f"{title} ({page_index + 1}/{len(pages)})"
         help_text = "h/l section  j/k scroll  m note  ? help  q quit"
-        stdscr.addnstr(0, 0, header, max(0, width - 1), curses.A_REVERSE)
-        if width > len(help_text) + 2:
-            stdscr.addnstr(0, max(0, width - len(help_text) - 1), help_text, len(help_text), curses.A_REVERSE)
+        if width > 0:
+            stdscr.addnstr(0, 0, " " * max(0, width - 1), max(0, width - 1), curses.A_REVERSE)
+            if width > len(help_text) + 2:
+                header_width = max(0, width - len(help_text) - 3)
+                stdscr.addnstr(0, 0, header, header_width, curses.A_REVERSE)
+                stdscr.addnstr(0, max(0, width - len(help_text) - 1), help_text, len(help_text), curses.A_REVERSE)
+            else:
+                stdscr.addnstr(0, 0, header, max(0, width - 1), curses.A_REVERSE)
 
         available = max(0, height - 2)
         for row, line in enumerate(body_lines[offset:offset + available], start=1):
@@ -544,7 +743,10 @@ def vim_pager(
         show_help = False
 
         def open_memo(stdscr) -> None:
-            ensure_memo_section(memo_path, date, office_title, psalms, first, second)
+            if date and office_title and psalms is not None:
+                ensure_memo_section(memo_path, date, office_title, psalms, first, second)
+            else:
+                ensure_memo_file(memo_path)
             curses.def_prog_mode()
             curses.endwin()
             try:
@@ -609,6 +811,14 @@ def main() -> None:
     date = parse_date(DATE_ARG)
     if MODE == "note":
         open_notes()
+        return
+
+    if MODE == "common":
+        print_common_prayers()
+        return
+
+    if MODE == "devotion":
+        print_devotion()
         return
 
     if MODE == "collect":
