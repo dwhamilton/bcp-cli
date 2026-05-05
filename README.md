@@ -64,23 +64,25 @@ The script has no Python package dependencies.
 
 ## Quick Start
 
-From the repo:
+After install:
 
 ```sh
-./bcp.sh
-./bcp.sh morning
-./bcp.sh evening
-./bcp.sh 2026-05-05 morning
-./bcp.sh 2026-06-24 evening
+bcp
+bcp morning
+bcp evening
+bcp 2026-05-05 morning
+bcp 2026-06-24 evening
 ```
 
 With no arguments:
 
 ```sh
-./bcp.sh
+bcp
 ```
 
 is equivalent to today's Evening Prayer.
+
+When developing from a clone, use `./bcp.sh` in place of `bcp`.
 
 ## Current Local Install
 
@@ -159,30 +161,30 @@ understanding what is being installed.
 Read today's Evening Prayer:
 
 ```sh
-./bcp.sh
+bcp
 ```
 
 Read today's Morning or Evening Prayer:
 
 ```sh
-./bcp.sh morning
-./bcp.sh evening
+bcp morning
+bcp evening
 ```
 
 Read a specific date:
 
 ```sh
-./bcp.sh 2026-05-05
-./bcp.sh 2026-05-05 morning
-./bcp.sh 2026-05-05 evening
+bcp 2026-05-05
+bcp 2026-05-05 morning
+bcp 2026-05-05 evening
 ```
 
 Read the weekday collect:
 
 ```sh
-./bcp.sh collect
-./bcp.sh collect saturday
-./bcp.sh collect sat
+bcp collect
+bcp collect saturday
+bcp collect sat
 ```
 
 Short weekday names are supported, such as `sun`, `mon`, `tue`, `wed`, `thu`,
@@ -193,9 +195,9 @@ Short weekday names are supported, such as `sun`, `mon`, `tue`, `wed`, `thu`,
 Add `--vim` to Morning or Evening Prayer:
 
 ```sh
-./bcp.sh --vim
-./bcp.sh --vim morning
-./bcp.sh 2026-05-05 evening --vim
+bcp --vim
+bcp --vim morning
+bcp 2026-05-05 evening --vim
 ```
 
 Each element appears on its own cleared terminal page:
@@ -234,7 +236,7 @@ Example:
 
 ```sh
 export BCP_MEMO="$HOME/notes/bcp.md"
-./bcp.sh --vim
+bcp --vim
 ```
 
 When a memo is opened, the CLI ensures there is one section for the current date
@@ -284,7 +286,7 @@ july_evening.csv
 `collects.yaml` contains:
 
 - office collects for Morning and Evening Prayer
-- weekday collects used by `./bcp.sh collect`
+- weekday collects used by `bcp collect`
 
 ## Configuration
 
