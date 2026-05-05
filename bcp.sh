@@ -66,7 +66,13 @@ if [[ "$mode" == "note" && "$vim_mode" == "true" ]]; then
   exit 1
 fi
 
-script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source_path="${BASH_SOURCE[0]}"
+while [[ -L "$source_path" ]]; do
+  source_dir="$(cd -P -- "$(dirname -- "$source_path")" && pwd)"
+  source_path="$(readlink "$source_path")"
+  [[ "$source_path" == /* ]] || source_path="$source_dir/$source_path"
+done
+script_dir="$(cd -P -- "$(dirname -- "$source_path")" && pwd)"
 
 if [[ "$mode" == "readings" && "$office" != "morning" && "$office" != "evening" ]]; then
   printf 'Usage: %s [YYYY-MM-DD] [morning|evening]\n' "${0##*/}" >&2
