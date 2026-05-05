@@ -478,6 +478,25 @@ Later:
 - support additional Bible text sources
 - support local/offline public-domain Bible text
 
+## Contributing
+
+Pull requests are welcome, especially for small, focused improvements.
+
+Good early contributions include:
+
+- normalized monthly lectionary CSVs
+- corrections to existing data files
+- README and installation improvements
+- focused CLI behavior fixes
+- tests and validation
+
+For larger changes, please open an issue first so the direction can be discussed
+before implementation.
+
+Please avoid adding copyrighted source text beyond material that is clearly
+permitted for this project's use. If you contribute lectionary data, preserve
+the existing CSV shape and naming convention.
+
 ## License
 
 No license file has been added yet. MIT is a likely fit for the code.
