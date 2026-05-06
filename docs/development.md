@@ -68,13 +68,19 @@ Bundled CSV and YAML files are included as package data:
 bcp_cli = ["data/*.csv", "data/*.yaml"]
 ```
 
-The intended install path is:
+The intended PyPI install path is:
 
 ```sh
 pipx install daily-bcp
 ```
 
 Until the package is published, install from a clone:
+
+```sh
+pipx install git+https://github.com/dwhamilton/daily-bcp.git
+```
+
+For source-checkout use:
 
 ```sh
 pipx install .

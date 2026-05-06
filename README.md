@@ -34,13 +34,19 @@ The CLI has no Python package dependencies.
 
 ## Install
 
-Install with `pipx`:
+The package is not published to PyPI yet. For now, install from a clone:
+
+```sh
+pipx install git+https://github.com/dwhamilton/daily-bcp.git
+```
+
+After the first PyPI release is published, install with:
 
 ```sh
 pipx install daily-bcp
 ```
 
-Until the first PyPI release is published, install from a clone:
+For editable source-checkout use:
 
 ```sh
 git clone https://github.com/dwhamilton/daily-bcp.git
