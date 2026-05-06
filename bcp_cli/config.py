@@ -19,6 +19,7 @@ class Options:
     devotion_key: str
     vim_mode: bool
     compact_mode: bool
+    history_month: str
     csv_path: Path
     collects_path: Path
 
@@ -75,7 +76,9 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
     devotion_key = ""
     vim_mode = False
     compact_mode = False
+    history_month = ""
     date_provided = False
+    month_provided = False
 
     args: list[str] = []
     index = 0
@@ -91,6 +94,12 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
             date_provided = True
         elif arg == "--compact":
             compact_mode = True
+        elif arg == "--month":
+            index += 1
+            if index >= len(raw_args):
+                usage_error(f"{arg} requires a month value.", program)
+            history_month = raw_args[index]
+            month_provided = True
         elif arg.startswith("-"):
             usage_error(f"Unknown option: {arg}", program)
         else:
@@ -147,10 +156,23 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
             usage_error("--compact is only supported for readings.", program)
         if command_args:
             usage_error("notes does not accept additional arguments.", program)
+    elif command == "history":
+        mode = "history"
+        if date_provided:
+            usage_error("--date is only supported for readings.", program)
+        if vim_mode:
+            usage_error("--vim is not supported for history.", program)
+        if compact_mode:
+            usage_error("--compact is only supported for readings.", program)
+        if command_args:
+            usage_error("history does not accept additional arguments.", program)
     elif looks_like_date(command):
         usage_error(f"Dates now use --date/-d. Try `{program} readings --date {command}`.", program)
     else:
         usage_error(f"Unknown command: {command!r}.", program)
+
+    if month_provided and mode != "history":
+        usage_error("--month is only supported for history.", program)
 
     date = parse_date(date_arg, now)
     date_arg = date.strftime("%Y-%m-%d")
@@ -168,6 +190,7 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
         devotion_key=devotion_key.lower(),
         vim_mode=vim_mode,
         compact_mode=compact_mode,
+        history_month=history_month,
         csv_path=csv_path,
         collects_path=collects_path,
     )

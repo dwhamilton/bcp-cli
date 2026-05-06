@@ -3,7 +3,7 @@
 `bcp-cli` is a terminal-first Daily Office reader for the ACNA 2019 Book of
 Common Prayer lectionary. It gives you Morning Prayer or Evening Prayer
 readings, KJV Bible text, collects, common prayers, devotions, a keyboard-driven
-reader mode, and persistent Markdown notes.
+reader mode, persistent Markdown notes, and local readings history.
 
 It is built for deliberate, text-first use: open the office, read linearly, and
 keep reflections in plain files you control.
@@ -17,6 +17,7 @@ keep reflections in plain files you control.
 - Lists and prints common prayers with `bcp common`
 - Lists and prints personal devotions with `bcp devotion`
 - Opens a persistent Markdown notes file with `bcp notes`
+- Shows local readings consistency history with `bcp history`
 - Provides an optional vim-style reader with `--vim`
 - Supports compact lesson formatting with `--compact`
 
@@ -101,6 +102,25 @@ bcp readings morning --date 2026-05-05 --compact
 ```
 
 Psalms remain verse-broken in compact mode.
+
+## History
+
+Show a calendar-style view of reading consistency for the current month:
+
+```sh
+bcp history
+```
+
+Show a specific month:
+
+```sh
+bcp history --month 2026-05
+bcp history --month may
+bcp history --month dec
+```
+
+Only successful `bcp readings` runs are tracked. The history date is the local
+day you ran the command, not the lectionary date requested with `--date`.
 
 ## Collects, Prayers, And Devotions
 
@@ -210,6 +230,10 @@ Current configuration is environment-variable based:
 - `BCP_DATA_DIR`: directory containing bundled-style CSV/YAML data files
 - `BCP_COLLECTS`: path to `collects.yaml`
 - `BCP_CSV`: override the lectionary CSV for a run
+- `BCP_HISTORY`: path to the readings history JSON file
+
+By default, history is stored at
+`${XDG_STATE_HOME:-$HOME/.local/state}/bcp-cli/history.json`.
 
 ## Uninstall
 

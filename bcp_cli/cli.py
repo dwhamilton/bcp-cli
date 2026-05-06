@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .config import Options, parse_date, parse_options
 from .data import find_readings, load_collects
+from .history import format_history, record_reading
 from .notes import default_memo_path, open_notes
 from .pager import vim_pager
 from .prayers import print_common_prayers, print_daily_collect, print_devotion
@@ -26,17 +27,15 @@ def run(options: Options) -> None:
         print_daily_collect(date, options)
         return
 
+    if options.mode == "history":
+        print(format_history(month=options.history_month))
+        return
+
     observance, psalms, first, second = find_readings(date, options.csv_path)
     collects = load_collects(options.collects_path)
 
     office_title = "Morning Prayer" if options.office == "morning" else "Evening Prayer"
     title = f"{office_title} - {date:%B} {date.day}, {date.year}"
-    if not options.vim_mode:
-        print(title)
-        if observance:
-            print(observance)
-        print("=" * len(title))
-        print()
 
     pages: list[tuple[str, str]] = []
 
@@ -44,19 +43,17 @@ def run(options: Options) -> None:
     if office_collect:
         collect_page = format_collect(office_collect.get("title", ""), office_collect.get("text", ""))
         pages.append((f"{title} - Collect", collect_page))
-        if not options.vim_mode:
-            print(collect_page)
 
     for psalm in psalms:
         page = format_passage("Psalm", psalm, options.compact_mode)
         pages.append((f"{title} - {psalm}", page))
-        if not options.vim_mode:
-            print(page)
 
     first_page = format_passage("First Lesson", first, options.compact_mode)
     second_page = format_passage("Second Lesson", second, options.compact_mode)
     pages.append((f"{title} - First Lesson", first_page))
     pages.append((f"{title} - Second Lesson", second_page))
+
+    record_reading(options.office, date.date())
 
     if options.vim_mode:
         vim_pager(
@@ -70,8 +67,13 @@ def run(options: Options) -> None:
             second,
         )
     else:
-        print(first_page)
-        print(second_page)
+        print(title)
+        if observance:
+            print(observance)
+        print("=" * len(title))
+        print()
+        for _, page in pages:
+            print(page)
 
 
 def main(argv: list[str] | None = None) -> None:
