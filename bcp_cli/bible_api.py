@@ -23,11 +23,10 @@ def passage_url(ref: str) -> str:
 def fetch_passage(ref: str) -> dict:
     request = urllib.request.Request(
         passage_url(ref),
-        headers={"User-Agent": "bcp-cli-prototype/0.1"},
+        headers={"User-Agent": "daily-bcp/0.1"},
     )
     try:
         with urllib.request.urlopen(request, timeout=20) as response:
             return json.loads(response.read().decode("utf-8"))
     except Exception as exc:
         usage_error(f"Could not fetch KJV text for {ref!r}: {exc}")
-

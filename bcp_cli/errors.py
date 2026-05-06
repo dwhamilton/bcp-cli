@@ -18,7 +18,7 @@ def usage_error(message: str, program: str = "bcp") -> None:
 
 def first_use_text(program: str = "bcp") -> str:
     return (
-        "bcp-cli reads Daily Office readings, collects, common prayers, and devotions.\n\n"
+        "daily-bcp reads Daily Office readings, collects, common prayers, and devotions.\n\n"
         "Try:\n"
         f"  {program} readings\n"
         f"  {program} readings morning\n"

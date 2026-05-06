@@ -1,6 +1,6 @@
-# bcp-cli
+# daily-bcp
 
-`bcp-cli` is a terminal-first Daily Office reader for the ACNA 2019 Book of
+`daily-bcp` is a terminal-first Daily Office reader for the ACNA 2019 Book of
 Common Prayer lectionary. It gives you Morning Prayer or Evening Prayer
 readings, KJV Bible text, collects, common prayers, devotions, a keyboard-driven
 reader mode, persistent Markdown notes, and local readings history.
@@ -37,14 +37,14 @@ The CLI has no Python package dependencies.
 Install with `pipx`:
 
 ```sh
-pipx install bcp-cli
+pipx install daily-bcp
 ```
 
 Until the first PyPI release is published, install from a clone:
 
 ```sh
-git clone https://github.com/dwhamilton/bcp-cli.git
-cd bcp-cli
+git clone https://github.com/dwhamilton/daily-bcp.git
+cd daily-bcp
 pipx install .
 ```
 
@@ -202,7 +202,7 @@ bcp notes
 ```
 
 In `--vim` mode, press `m` to open the same notes file. When reading an office,
-`bcp-cli` creates one dated section for that date and office, and pressing `m`
+`daily-bcp` creates one dated section for that date and office, and pressing `m`
 again does not duplicate it.
 
 The editor is chosen in this order:
@@ -215,7 +215,7 @@ The notes file is chosen in this order:
 
 1. `BCP_NOTES`
 2. `BCP_MEMO`
-3. `${XDG_STATE_HOME:-$HOME/.local/state}/bcp-cli/notes.md`
+3. `${XDG_STATE_HOME:-$HOME/.local/state}/daily-bcp/notes.md`
 
 Example:
 
@@ -238,14 +238,14 @@ Current configuration is environment-variable based:
 - `BCP_HISTORY`: path to the readings history JSON file
 
 By default, history is stored at
-`${XDG_STATE_HOME:-$HOME/.local/state}/bcp-cli/history.json`.
+`${XDG_STATE_HOME:-$HOME/.local/state}/daily-bcp/history.json`.
 
 ## Uninstall
 
 If installed with `pipx`:
 
 ```sh
-pipx uninstall bcp-cli
+pipx uninstall daily-bcp
 ```
 
 If installed in a virtual environment, remove that environment.

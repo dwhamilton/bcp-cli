@@ -18,7 +18,7 @@ def default_memo_path() -> Path:
 
     state_home = os.environ.get("XDG_STATE_HOME")
     base = Path(state_home).expanduser() if state_home else Path.home() / ".local" / "state"
-    return base / "bcp-cli" / "notes.md"
+    return base / "daily-bcp" / "notes.md"
 
 
 def ensure_memo_section(
@@ -30,7 +30,7 @@ def ensure_memo_section(
     first: str,
     second: str,
 ) -> None:
-    marker = f"<!-- bcp-cli:{date:%Y-%m-%d}:{office} -->"
+    marker = f"<!-- daily-bcp:{date:%Y-%m-%d}:{office} -->"
     memo_path.parent.mkdir(parents=True, exist_ok=True)
     if not memo_path.exists():
         memo_path.write_text("# BCP Notes\n", encoding="utf-8")
@@ -81,4 +81,3 @@ def open_notes() -> None:
     memo_path = default_memo_path()
     ensure_memo_file(memo_path)
     open_editor(memo_path)
-

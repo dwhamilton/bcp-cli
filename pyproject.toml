@@ -3,7 +3,7 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bcp-cli"
+name = "daily-bcp"
 version = "0.1.0"
 description = "Terminal-first Daily Office reader."
 readme = "README.md"
@@ -38,9 +38,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/dwhamilton/bcp-cli"
-Repository = "https://github.com/dwhamilton/bcp-cli"
-Issues = "https://github.com/dwhamilton/bcp-cli/issues"
+Homepage = "https://github.com/dwhamilton/daily-bcp"
+Repository = "https://github.com/dwhamilton/daily-bcp"
+Issues = "https://github.com/dwhamilton/daily-bcp/issues"
 
 [project.scripts]
 bcp = "bcp_cli.cli:main"

@@ -1,12 +1,12 @@
 # Development Notes
 
-This document explains the current shape of `bcp-cli`, the tradeoffs behind it,
+This document explains the current shape of `daily-bcp`, the tradeoffs behind it,
 and the likely direction for future work. The README is intentionally focused on
 users.
 
 ## Project Shape
 
-`bcp-cli` is a small Python CLI package with bundled data files and a thin shell
+`daily-bcp` is a small Python CLI package with bundled data files and a thin shell
 wrapper for source-checkout use.
 
 ```text
@@ -71,7 +71,7 @@ bcp_cli = ["data/*.csv", "data/*.yaml"]
 The intended install path is:
 
 ```sh
-pipx install bcp-cli
+pipx install daily-bcp
 ```
 
 Until the package is published, install from a clone:
@@ -111,7 +111,7 @@ Before publishing a release:
 5. Install from TestPyPI with `pipx`:
 
    ```sh
-   pipx install --force --index-url https://test.pypi.org/simple/ bcp-cli
+   pipx install --force --index-url https://test.pypi.org/simple/ daily-bcp
    bcp --help
    bcp history --month may
    ```
@@ -176,14 +176,14 @@ Configuration is environment-variable based:
 A future config file would likely live at:
 
 ```text
-${XDG_CONFIG_HOME:-$HOME/.config}/bcp-cli/config.yaml
+${XDG_CONFIG_HOME:-$HOME/.config}/daily-bcp/config.yaml
 ```
 
 Possible values:
 
 ```yaml
 memo_file: /home/user/notes/bcp.md
-data_dir: /home/user/.local/share/bcp-cli
+data_dir: /home/user/.local/share/daily-bcp
 bible_translation: kjv
 ```
 
@@ -252,7 +252,7 @@ Near-term:
 
 Medium-term:
 
-- publish to PyPI for `pipx install bcp-cli`
+- publish to PyPI for `pipx install daily-bcp`
 - cache fetched Bible text for faster repeat/offline use
 - add a config file
 - support user-provided data directories more formally

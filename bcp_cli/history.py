@@ -23,7 +23,7 @@ def default_history_path() -> Path:
         base = Path(state_home).expanduser()
     else:
         base = Path.home() / ".local" / "state"
-    return base / "bcp-cli" / "history.json"
+    return base / "daily-bcp" / "history.json"
 
 
 def empty_history() -> HistoryData:
