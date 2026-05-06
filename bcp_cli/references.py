@@ -24,6 +24,8 @@ BOOKS = {
 CHAPTER_VERSE_COUNTS = {
     ("John", 1): 51,
     ("1 John", 2): 29,
+    ("1 John", 4): 21,
+    ("1 Peter", 4): 19,
     ("Luke", 2): 52,
     ("Luke", 3): 38,
     ("Luke", 4): 44,
@@ -96,4 +98,3 @@ def normalize_reference(ref: str) -> str:
         return f"{book} {chapter}:{first_verse}-{last_verse}"
 
     return ref
-

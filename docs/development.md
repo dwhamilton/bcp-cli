@@ -106,7 +106,7 @@ june_evening.csv
 `collects.yaml` contains:
 
 - office collects for Morning and Evening Prayer
-- weekday collects used by `bcp collect`
+- weekday collects used by `bcp collects`
 - common prayers used by `bcp common`
 - personal devotions used by `bcp devotion`
 
@@ -215,13 +215,8 @@ Later:
 - consider a richer TUI with `prompt_toolkit` or `Textual`
 - support additional Bible text sources
 - support local/offline public-domain Bible text
-- revisit command shape, possibly adding commands such as:
-
-```sh
-bcp today
-bcp read morning
-bcp read 2026-05-05 evening
-```
+- revisit command shape only if the `readings|collects|common|devotion|notes`
+  grammar stops fitting real use
 
 ## Copyright And Source Text
 
@@ -233,4 +228,3 @@ Before publishing broadly, charging money, or bundling larger portions of BCP
 text, the licensing and copyright position should be reviewed carefully. In
 particular, contributors should avoid adding copyrighted source text unless its
 use is clearly permitted for this project.
-

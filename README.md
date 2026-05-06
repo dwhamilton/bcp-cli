@@ -13,10 +13,10 @@ keep reflections in plain files you control.
 - Reads Morning Prayer and Evening Prayer from local lectionary CSV files
 - Fetches public-domain KJV Bible text from `bible-api.com`
 - Prints the office collect before the readings
-- Looks up weekday collects with `bcp collect`
+- Looks up weekday collects with `bcp collects`
 - Lists and prints common prayers with `bcp common`
 - Lists and prints personal devotions with `bcp devotion`
-- Opens a persistent Markdown notes file with `bcp note`
+- Opens a persistent Markdown notes file with `bcp notes`
 - Provides an optional vim-style reader with `--vim`
 - Supports compact lesson formatting with `--compact`
 
@@ -53,8 +53,8 @@ python3 -m pip install .
 Verify:
 
 ```sh
-bcp collect sat
-bcp 2026-05-05 morning
+bcp collects sat
+bcp readings morning --date 2026-05-05
 ```
 
 When running directly from a clone without installing:
@@ -66,31 +66,38 @@ python3 -m bcp_cli
 
 ## Use
 
-Read today's Evening Prayer:
+Show a short first-use prompt:
 
 ```sh
 bcp
 ```
 
-Read today's Morning or Evening Prayer:
+Read the current office. Before noon this defaults to Morning Prayer; at noon
+or later this defaults to Evening Prayer:
 
 ```sh
-bcp morning
-bcp evening
+bcp readings
+```
+
+Read today's Morning or Evening Prayer explicitly:
+
+```sh
+bcp readings morning
+bcp readings evening
 ```
 
 Read a specific date:
 
 ```sh
-bcp 2026-05-05
-bcp 2026-05-05 morning
-bcp 2026-05-05 evening
+bcp readings --date 2026-05-05
+bcp readings morning --date yesterday
+bcp readings evening --date tomorrow
 ```
 
 Render lessons as wrapped paragraphs with inline verse markers:
 
 ```sh
-bcp 2026-05-05 morning --compact
+bcp readings morning --date 2026-05-05 --compact
 ```
 
 Psalms remain verse-broken in compact mode.
@@ -100,10 +107,10 @@ Psalms remain verse-broken in compact mode.
 Read the weekday collect:
 
 ```sh
-bcp collect
-bcp collect saturday
-bcp collect sat
-bcp collect all
+bcp collects
+bcp collects saturday
+bcp collects sat
+bcp collects all
 ```
 
 List common prayers:
@@ -142,11 +149,11 @@ bcp devotion all
 Add `--vim` to read in a cleared, keyboard-driven terminal view:
 
 ```sh
-bcp --vim
-bcp --vim morning
-bcp 2026-05-05 evening --vim
-bcp 2026-05-05 morning --compact --vim
-bcp collect all --vim
+bcp readings --vim
+bcp readings morning --vim
+bcp readings evening --date 2026-05-05 --vim
+bcp readings morning --date 2026-05-05 --compact --vim
+bcp collects all --vim
 bcp common all --vim
 bcp devotion all --vim
 ```
@@ -166,7 +173,6 @@ Controls:
 Open the notes file:
 
 ```sh
-bcp note
 bcp notes
 ```
 
@@ -190,7 +196,7 @@ Example:
 
 ```sh
 export BCP_NOTES="$HOME/notes/bcp.md"
-bcp note
+bcp notes
 ```
 
 Notes are not removed when you uninstall the CLI.
