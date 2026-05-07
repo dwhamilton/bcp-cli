@@ -25,6 +25,7 @@ from bcp_cli.data import (
 )
 from bcp_cli.history import format_history, load_history, record_reading
 from bcp_cli.notes import ensure_library_memo_section, ensure_memo_section
+from bcp_cli.pager import wrap_body_lines
 from bcp_cli.references import normalize_reference
 
 
@@ -36,6 +37,12 @@ class CliTests(unittest.TestCase):
         self.assertEqual(options.office, "morning")
         self.assertEqual(options.mode, "readings")
         self.assertEqual(options.csv_path.name, "may_morning.csv")
+
+    def test_wrap_body_lines_wraps_long_reader_paragraphs(self) -> None:
+        wrapped = wrap_body_lines("Alpha beta gamma delta\n\nEpsilon", 12)
+
+        self.assertEqual(wrapped, ["Alpha beta", "gamma delta", "", "Epsilon"])
+        self.assertTrue(all(len(line) <= 12 for line in wrapped))
 
     def test_readings_default_office_uses_current_time(self) -> None:
         morning = parse_options(["readings"], now=datetime(2026, 5, 5, 9, 0))

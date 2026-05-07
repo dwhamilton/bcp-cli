@@ -2,12 +2,30 @@ from __future__ import annotations
 
 import os
 import sys
+import textwrap
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
 from .errors import usage_error
 from .notes import ensure_memo_file, ensure_memo_section, open_editor
+
+
+def wrap_body_lines(body: str, width: int) -> list[str]:
+    line_width = max(1, width)
+    wrapped: list[str] = []
+    for line in body.splitlines():
+        if not line:
+            wrapped.append("")
+            continue
+        wrapped.extend(
+            textwrap.wrap(
+                line,
+                width=line_width,
+                replace_whitespace=False,
+            )
+        )
+    return wrapped
 
 
 def vim_pager(
@@ -63,7 +81,7 @@ def vim_pager(
         stdscr.erase()
         height, width = stdscr.getmaxyx()
         title, body = pages[page_index]
-        body_lines = body.splitlines()
+        body_lines = wrap_body_lines(body, max(1, width - 1))
         max_offset = max(0, len(body_lines) - max(1, height - 2))
         offset = min(offset, max_offset)
 
@@ -121,8 +139,8 @@ def vim_pager(
                 show_help = False
                 continue
 
-            height, _ = stdscr.getmaxyx()
-            page_len = len(pages[page_index][1].splitlines())
+            height, width = stdscr.getmaxyx()
+            page_len = len(wrap_body_lines(pages[page_index][1], max(1, width - 1)))
             max_offset = max(0, page_len - max(1, height - 2))
             page_step = max(1, height - 3)
 
