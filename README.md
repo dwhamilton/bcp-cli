@@ -68,6 +68,7 @@ Verify:
 ```sh
 bcp collects sat
 bcp readings morning --date 2026-05-05
+bcp library
 ```
 
 When running directly from a clone without installing:
@@ -75,6 +76,28 @@ When running directly from a clone without installing:
 ```sh
 ./bcp.sh
 python3 -m bcp_cli
+```
+
+### Ask An Agent To Install It
+
+You can paste this into Codex, Claude Code, or another local coding agent:
+
+```text
+Install daily-bcp from its GitHub repo and verify it runs.
+
+Repo: https://github.com/dwhamilton/daily-bcp
+
+Use pipx, not system pip. If pipx is missing on macOS, install it with
+Homebrew and run pipx ensurepath. Then install daily-bcp from the repo with
+pipx.
+
+After installation, run:
+bcp library
+bcp library --path
+
+Tell me the installed command path, the library folder path, and whether
+sample.yaml was seeded. Do not use --break-system-packages, and do not
+overwrite existing notes, history, or user library files.
 ```
 
 ## Use
