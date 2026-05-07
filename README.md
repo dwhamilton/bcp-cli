@@ -26,8 +26,11 @@ Current lectionary coverage is May and June only.
 
 ## Terminal Demo
 
-A short asciinema recording is included in this repository as
-[quick-demo.cast](quick-demo.cast):
+Watch the terminal demo on
+[person.dev](https://person.dev/#demo).
+
+The source recording is also included in this repository as `quick-demo.cast`.
+After cloning the repo, play it locally with:
 
 ```sh
 asciinema play quick-demo.cast
