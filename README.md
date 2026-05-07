@@ -24,6 +24,18 @@ keep reflections in plain files you control.
 
 Current lectionary coverage is May and June only.
 
+## Terminal Demo
+
+A short asciinema recording is included in this repository as
+[quick-demo.cast](quick-demo.cast):
+
+```sh
+asciinema play quick-demo.cast
+```
+
+It shows the first-use prompt, the vim-style Morning Prayer reader, library
+readings, and local history.
+
 ## Requirements
 
 - `python3`
