@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shlex
+import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
@@ -100,8 +101,12 @@ def ensure_memo_file(memo_path: Path) -> None:
 
 
 def editor_command() -> list[str]:
-    editor = os.environ.get("VISUAL") or os.environ.get("EDITOR") or "vi"
-    return shlex.split(editor)
+    editor = os.environ.get("VISUAL") or os.environ.get("EDITOR")
+    if editor:
+        return shlex.split(editor)
+    if shutil.which("nano"):
+        return ["nano"]
+    raise RuntimeError("No editor found. Set VISUAL or EDITOR to open notes.")
 
 
 def open_editor(path: Path) -> None:

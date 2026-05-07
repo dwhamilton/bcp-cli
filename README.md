@@ -287,7 +287,10 @@ The editor is chosen in this order:
 
 1. `$VISUAL`
 2. `$EDITOR`
-3. `vi`
+3. `nano`, if it is installed
+
+If neither `$VISUAL` nor `$EDITOR` is set and `nano` is unavailable, `bcp` asks
+you to set an editor instead of guessing.
 
 The notes file is chosen in this order:
 

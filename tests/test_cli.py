@@ -24,7 +24,7 @@ from bcp_cli.data import (
     seed_library_samples,
 )
 from bcp_cli.history import format_history, load_history, record_reading
-from bcp_cli.notes import ensure_library_memo_section, ensure_memo_section
+from bcp_cli.notes import editor_command, ensure_library_memo_section, ensure_memo_section
 from bcp_cli.pager import wrap_body_lines
 from bcp_cli.references import normalize_reference
 
@@ -550,6 +550,25 @@ readings:
             notes = path.read_text(encoding="utf-8")
 
         self.assertIn("## 2026-05-07 - Morning Prayer", notes)
+
+    def test_editor_command_respects_visual(self) -> None:
+        with patch.dict("os.environ", {"VISUAL": "code --wait", "EDITOR": "vim"}, clear=True):
+            self.assertEqual(editor_command(), ["code", "--wait"])
+
+    def test_editor_command_respects_editor(self) -> None:
+        with patch.dict("os.environ", {"EDITOR": "vim"}, clear=True):
+            self.assertEqual(editor_command(), ["vim"])
+
+    def test_editor_command_defaults_to_nano(self) -> None:
+        with patch.dict("os.environ", {}, clear=True):
+            with patch("bcp_cli.notes.shutil.which", return_value="/usr/bin/nano"):
+                self.assertEqual(editor_command(), ["nano"])
+
+    def test_editor_command_requires_configuration_without_nano(self) -> None:
+        with patch.dict("os.environ", {}, clear=True):
+            with patch("bcp_cli.notes.shutil.which", return_value=None):
+                with self.assertRaises(RuntimeError):
+                    editor_command()
 
     def test_format_history_with_no_history(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
