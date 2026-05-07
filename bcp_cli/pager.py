@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 
@@ -18,6 +19,7 @@ def vim_pager(
     psalms: list[str] | None = None,
     first: str = "",
     second: str = "",
+    prepare_notes: Callable[[], None] | None = None,
 ) -> None:
     if not sys.stdout.isatty():
         usage_error("--vim requires an interactive terminal.")
@@ -92,7 +94,9 @@ def vim_pager(
         show_help = False
 
         def open_memo(stdscr) -> None:
-            if date and office_title and psalms is not None:
+            if prepare_notes:
+                prepare_notes()
+            elif date and office_title and psalms is not None:
                 ensure_memo_section(memo_path, date, office_title, office, psalms, first, second)
             else:
                 ensure_memo_file(memo_path)
@@ -154,4 +158,3 @@ def vim_pager(
     finally:
         if tty:
             tty.close()
-

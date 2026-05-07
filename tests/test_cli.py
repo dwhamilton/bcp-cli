@@ -15,8 +15,16 @@ from unittest.mock import patch
 from bcp_cli.cli import run
 from bcp_cli.bible_api import fetch_passage
 from bcp_cli.config import default_data_dir, parse_options
-from bcp_cli.data import find_readings, load_collects
+from bcp_cli.data import (
+    bundled_library_dir,
+    find_readings,
+    list_library_items,
+    load_collects,
+    load_library_item,
+    seed_library_samples,
+)
 from bcp_cli.history import format_history, load_history, record_reading
+from bcp_cli.notes import ensure_library_memo_section, ensure_memo_section
 from bcp_cli.references import normalize_reference
 
 
@@ -70,6 +78,25 @@ class CliTests(unittest.TestCase):
         self.assertEqual(options.mode, "history")
         self.assertEqual(options.history_month, "may")
 
+    def test_parse_library_list_command(self) -> None:
+        options = parse_options(["library"])
+
+        self.assertEqual(options.mode, "library")
+        self.assertEqual(options.library_key, "")
+
+    def test_parse_library_item_vim_command(self) -> None:
+        options = parse_options(["library", "item1", "--vim"])
+
+        self.assertEqual(options.mode, "library")
+        self.assertEqual(options.library_key, "item1")
+        self.assertTrue(options.vim_mode)
+
+    def test_parse_library_path_command(self) -> None:
+        options = parse_options(["library", "--path"])
+
+        self.assertEqual(options.mode, "library")
+        self.assertTrue(options.library_path)
+
     def test_no_args_prints_first_use(self) -> None:
         output = StringIO()
         with redirect_stdout(output):
@@ -91,6 +118,26 @@ class CliTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             parse_options(["readings", "--month", "2026-05"])
 
+    def test_library_rejects_readings_options(self) -> None:
+        for args in [
+            ["library", "--date", "tomorrow"],
+            ["library", "--compact"],
+            ["library", "--month", "2026-05"],
+        ]:
+            with self.subTest(args=args):
+                with self.assertRaises(SystemExit):
+                    parse_options(args)
+
+    def test_library_path_rejects_item_and_vim(self) -> None:
+        for args in [
+            ["library", "item1", "--path"],
+            ["library", "--path", "--vim"],
+            ["readings", "--path"],
+        ]:
+            with self.subTest(args=args):
+                with self.assertRaises(SystemExit):
+                    parse_options(args)
+
     def test_option_without_command_is_rejected(self) -> None:
         with self.assertRaises(SystemExit):
             parse_options(["--vim"])
@@ -107,6 +154,132 @@ class CliTests(unittest.TestCase):
         self.assertIn("office", collects)
         self.assertIn("daily", collects)
         self.assertEqual(collects["common_prayers"]["lords_prayer"]["title"], "The Lord's Prayer")
+
+    def test_load_library_item(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "item1.yaml"
+            path.write_text(
+                """title: Item Title
+readings:
+  first:
+    title: First Reading
+    text: |
+      Reading text here.
+
+  second:
+    title: Second Reading
+    text: |
+      Another reading here.
+""",
+                encoding="utf-8",
+            )
+
+            item = load_library_item(path)
+
+        self.assertEqual(item.key, "item1")
+        self.assertEqual(item.title, "Item Title")
+        self.assertEqual([reading.key for reading in item.readings], ["first", "second"])
+        self.assertEqual(item.readings[0].title, "First Reading")
+        self.assertEqual(item.readings[1].text, "Another reading here.")
+
+    def test_load_library_item_rejects_missing_fields_and_malformed_yaml(self) -> None:
+        cases = {
+            "missing_title.yaml": """readings:
+  first:
+    title: First Reading
+    text: |
+      Text.
+""",
+            "missing_readings.yaml": "title: Item Title\n",
+            "missing_text.yaml": """title: Item Title
+readings:
+  first:
+    title: First Reading
+""",
+            "malformed.yaml": """title Item Title
+readings:
+  first:
+    title: First Reading
+    text: |
+      Text.
+""",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            for name, content in cases.items():
+                path = Path(directory) / name
+                path.write_text(content, encoding="utf-8")
+                with self.subTest(name=name):
+                    with self.assertRaises(SystemExit):
+                        load_library_item(path)
+
+    def test_list_library_items_rejects_empty_folder(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with patch("bcp_cli.data.bundled_library_dir", return_value=Path(directory) / "missing"):
+                with self.assertRaises(SystemExit) as raised:
+                    list_library_items(Path(directory))
+
+        self.assertIn("No library items found", str(raised.exception))
+
+    def test_list_library_items_shows_stems_and_titles(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "item1.yaml"
+            path.write_text(
+                """title: Item Title
+readings:
+  first:
+    title: First Reading
+    text: |
+      Text.
+""",
+                encoding="utf-8",
+            )
+
+            items = list_library_items(Path(directory))
+
+        self.assertTrue(any(item.key == "item1" and item.title == "Item Title" for item in items))
+
+    def test_list_library_items_reports_invalid_files(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "broken.yaml").write_text("title Broken\n", encoding="utf-8")
+
+            items = list_library_items(Path(directory))
+
+        broken = next(item for item in items if item.key == "broken")
+        self.assertEqual(broken.title, "")
+        self.assertIn("broken.yaml:1: malformed YAML line.", broken.error)
+
+    def test_bundled_library_sample_loads(self) -> None:
+        item = load_library_item(bundled_library_dir() / "augustine-confessions.yaml")
+
+        self.assertEqual(item.key, "augustine-confessions")
+        self.assertEqual(item.title, "St. Augustine, Confessions")
+        self.assertEqual(item.readings[0].title, "Restless Heart")
+
+    def test_list_library_items_seeds_bundled_sample(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            library_dir = Path(directory)
+
+            items = list_library_items(library_dir)
+
+            sample_path = library_dir / "augustine-confessions.yaml"
+            seeded = sample_path.read_text(encoding="utf-8")
+
+        self.assertTrue(
+            any(item.key == "augustine-confessions" and item.title == "St. Augustine, Confessions" for item in items)
+        )
+        self.assertIn("Restless Heart", seeded)
+
+    def test_seed_library_samples_does_not_overwrite_existing_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            library_dir = Path(directory)
+            sample_path = library_dir / "augustine-confessions.yaml"
+            sample_path.write_text("title: Custom\n", encoding="utf-8")
+
+            seed_library_samples(library_dir)
+
+            content = sample_path.read_text(encoding="utf-8")
+
+        self.assertEqual(content, "title: Custom\n")
 
     def test_find_readings(self) -> None:
         observance, psalms, first, second = find_readings(
@@ -222,6 +395,7 @@ class CliTests(unittest.TestCase):
             parse_options(["collects"]),
             parse_options(["common"]),
             parse_options(["devotion"]),
+            parse_options(["library"]),
             parse_options(["notes"]),
             parse_options(["history"]),
         ]
@@ -229,14 +403,148 @@ class CliTests(unittest.TestCase):
         with patch("bcp_cli.cli.print_daily_collect"):
             with patch("bcp_cli.cli.print_common_prayers"):
                 with patch("bcp_cli.cli.print_devotion"):
-                    with patch("bcp_cli.cli.open_notes"):
-                        with patch("bcp_cli.cli.format_history", return_value="history"):
-                            with patch("bcp_cli.cli.record_reading") as record:
-                                for options in commands:
-                                    with redirect_stdout(StringIO()):
-                                        run(options)
+                    with patch("bcp_cli.cli.print_library"):
+                        with patch("bcp_cli.cli.open_notes"):
+                            with patch("bcp_cli.cli.format_history", return_value="history"):
+                                with patch("bcp_cli.cli.record_reading") as record:
+                                    for options in commands:
+                                        with redirect_stdout(StringIO()):
+                                            run(options)
 
         record.assert_not_called()
+
+    def test_library_list_run_prints_items(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "item1.yaml").write_text(
+                """title: Item Title
+readings:
+  first:
+    title: First Reading
+    text: |
+      Text.
+""",
+                encoding="utf-8",
+            )
+            with patch.dict("os.environ", {"BCP_LIBRARY_DIR": directory}):
+                options = parse_options(["library"])
+
+            output = StringIO()
+            with redirect_stdout(output):
+                run(options)
+
+        rendered = output.getvalue()
+        self.assertIn(f"Library: {directory}\n\n", rendered)
+        self.assertIn("augustine-confessions: St. Augustine, Confessions\n", rendered)
+        self.assertIn("item1: Item Title\n", rendered)
+
+    def test_library_list_run_prints_invalid_file_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "broken.yaml").write_text("title Broken\n", encoding="utf-8")
+            with patch.dict("os.environ", {"BCP_LIBRARY_DIR": directory}):
+                options = parse_options(["library"])
+
+            output = StringIO()
+            with redirect_stdout(output):
+                run(options)
+
+        rendered = output.getvalue()
+        self.assertIn("broken: [invalid: broken.yaml:1: malformed YAML line.]", rendered)
+
+    def test_library_path_run_prints_only_path(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            with patch.dict("os.environ", {"BCP_LIBRARY_DIR": directory}):
+                options = parse_options(["library", "--path"])
+
+            output = StringIO()
+            with redirect_stdout(output):
+                run(options)
+
+        self.assertEqual(output.getvalue(), f"{directory}\n")
+
+    def test_library_item_run_prints_readings(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "item1.yaml").write_text(
+                """title: Item Title
+readings:
+  first:
+    title: First Reading
+    text: |
+      Reading text here.
+  second:
+    title: Second Reading
+    text: |
+      Another reading here.
+""",
+                encoding="utf-8",
+            )
+            with patch.dict("os.environ", {"BCP_LIBRARY_DIR": directory}):
+                options = parse_options(["library", "item1"])
+
+            output = StringIO()
+            with redirect_stdout(output):
+                run(options)
+
+        rendered = output.getvalue()
+        self.assertIn("Item Title\n==========", rendered)
+        self.assertIn("First Reading\n-------------", rendered)
+        self.assertIn("Reading text here.", rendered)
+        self.assertIn("Second Reading\n--------------", rendered)
+
+    def test_library_vim_uses_library_notes_path(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            Path(directory, "item1.yaml").write_text(
+                """title: Item Title
+readings:
+  first:
+    title: First Reading
+    text: |
+      Text.
+""",
+                encoding="utf-8",
+            )
+            with patch.dict("os.environ", {"BCP_LIBRARY_DIR": directory}):
+                options = parse_options(["library", "item1", "--vim"], now=datetime(2026, 5, 7, 9, 0))
+
+            with patch("bcp_cli.cli.vim_pager") as pager:
+                run(options)
+
+            pager.assert_called_once()
+            self.assertEqual(pager.call_args.args[1], Path(directory) / "notes.md")
+            pager.call_args.kwargs["prepare_notes"]()
+            notes = Path(directory, "notes.md").read_text(encoding="utf-8")
+
+        self.assertIn("## 2026-05-07 - Item Title", notes)
+        self.assertIn("<!-- daily-bcp-library:2026-05-07:item1 -->", notes)
+
+    def test_library_note_section_creation_is_idempotent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "notes.md"
+            reading_date = datetime(2026, 5, 7, 9, 0)
+
+            ensure_library_memo_section(path, reading_date, "item1", "Item Title")
+            ensure_library_memo_section(path, reading_date, "item1", "Item Title")
+
+            notes = path.read_text(encoding="utf-8")
+
+        self.assertEqual(notes.count("## 2026-05-07 - Item Title"), 1)
+
+    def test_daily_note_section_still_writes_to_new_file(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "notes.md"
+
+            ensure_memo_section(
+                path,
+                datetime(2026, 5, 7, 9, 0),
+                "Morning Prayer",
+                "morning",
+                ["Psalm 9"],
+                "Deuteronomy 6",
+                "Luke 4",
+            )
+
+            notes = path.read_text(encoding="utf-8")
+
+        self.assertIn("## 2026-05-07 - Morning Prayer", notes)
 
     def test_format_history_with_no_history(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

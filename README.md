@@ -16,6 +16,7 @@ keep reflections in plain files you control.
 - Looks up weekday collects with `bcp collects`
 - Lists and prints common prayers with `bcp common`
 - Lists and prints personal devotions with `bcp devotion`
+- Lists and reads user-managed library YAML files with `bcp library`
 - Opens a persistent Markdown notes file with `bcp notes`
 - Shows local readings consistency history with `bcp history`
 - Provides an optional vim-style reader with `--vim`
@@ -175,6 +176,51 @@ bcp devotion wesley
 bcp devotion all
 ```
 
+## Library
+
+Store personal readings as YAML files in a `library/` folder beside your notes
+file, or set `BCP_LIBRARY_DIR` to another folder.
+
+On first use, `daily-bcp` creates the folder if needed and adds a sample
+`augustine-confessions.yaml` file when that filename does not already exist.
+
+List library items:
+
+```sh
+bcp library
+```
+
+Show only the library folder path:
+
+```sh
+bcp library --path
+```
+
+Read one item:
+
+```sh
+bcp library item1
+bcp library item1 --vim
+bcp library augustine-confessions
+```
+
+The filename stem is the command key, so `item1.yaml` is read with
+`bcp library item1`. Each file uses this shape:
+
+```yaml
+title: Item Title
+readings:
+  first:
+    title: First Reading
+    text: |
+      Reading text here.
+
+  second:
+    title: Second Reading
+    text: |
+      Another reading here.
+```
+
 ## Vim-Style Reader
 
 Add `--vim` to read in a cleared, keyboard-driven terminal view:
@@ -187,6 +233,7 @@ bcp readings morning --date 2026-05-05 --compact --vim
 bcp collects all --vim
 bcp common all --vim
 bcp devotion all --vim
+bcp library item1 --vim
 ```
 
 Controls:
@@ -210,6 +257,8 @@ bcp notes
 In `--vim` mode, press `m` to open the same notes file. When reading an office,
 `daily-bcp` creates one dated section for that date and office, and pressing `m`
 again does not duplicate it.
+
+Library readings use a separate notes file at `<library folder>/notes.md`.
 
 The editor is chosen in this order:
 
@@ -242,6 +291,7 @@ Current configuration is environment-variable based:
 - `BCP_COLLECTS`: path to `collects.yaml`
 - `BCP_CSV`: override the lectionary CSV for a run
 - `BCP_HISTORY`: path to the readings history JSON file
+- `BCP_LIBRARY_DIR`: path to the library readings folder
 
 By default, history is stored at
 `${XDG_STATE_HOME:-$HOME/.local/state}/daily-bcp/history.json`.

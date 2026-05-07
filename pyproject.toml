@@ -49,4 +49,4 @@ bcp = "bcp_cli.cli:main"
 include = ["bcp_cli*"]
 
 [tool.setuptools.package-data]
-bcp_cli = ["data/*.csv", "data/*.yaml"]
+bcp_cli = ["data/*.csv", "data/*.yaml", "data/library/*.yaml"]

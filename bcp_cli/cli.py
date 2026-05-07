@@ -1,9 +1,18 @@
 from __future__ import annotations
 
+from datetime import datetime
+
 from .config import Options, parse_date, parse_options
-from .data import find_readings, load_collects
+from .data import (
+    find_readings,
+    library_item_path,
+    list_library_items,
+    load_collects,
+    load_library_item,
+    seed_library_samples,
+)
 from .history import format_history, record_reading
-from .notes import default_memo_path, open_notes
+from .notes import default_memo_path, ensure_library_memo_section, open_notes
 from .pager import vim_pager
 from .prayers import print_common_prayers, print_daily_collect, print_devotion
 from .render import format_collect, format_passage
@@ -29,6 +38,10 @@ def run(options: Options) -> None:
 
     if options.mode == "history":
         print(format_history(month=options.history_month))
+        return
+
+    if options.mode == "library":
+        print_library(options, date)
         return
 
     observance, psalms, first, second = find_readings(date, options.csv_path)
@@ -74,6 +87,55 @@ def run(options: Options) -> None:
         print()
         for _, page in pages:
             print(page)
+
+
+def print_library(options: Options, date: datetime) -> None:
+    if options.library_path:
+        print(options.library_dir)
+        return
+
+    if not options.library_key:
+        print(f"Library: {options.library_dir}")
+        print()
+        for item in list_library_items(options.library_dir):
+            if item.error:
+                print(f"{item.key}: [invalid: {item.error}]")
+            elif item.title:
+                print(f"{item.key}: {item.title}")
+            else:
+                print(item.key)
+        return
+
+    seed_library_samples(options.library_dir)
+    item = load_library_item(library_item_path(options.library_dir, options.library_key))
+    pages = [
+        (
+            f"{item.title} - {reading.title}",
+            f"{reading.title}\n{'-' * len(reading.title)}\n\n{reading.text}",
+        )
+        for reading in item.readings
+    ]
+
+    if options.vim_mode:
+        memo_path = options.library_dir / "notes.md"
+        vim_pager(
+            pages,
+            memo_path,
+            "library",
+            prepare_notes=lambda: ensure_library_memo_section(memo_path, date, item.key, item.title),
+        )
+        return
+
+    print(item.title)
+    print("=" * len(item.title))
+    print()
+    for index, reading in enumerate(item.readings):
+        if index:
+            print()
+        print(reading.title)
+        print("-" * len(reading.title))
+        print()
+        print(reading.text)
 
 
 def main(argv: list[str] | None = None) -> None:

@@ -21,6 +21,13 @@ def default_memo_path() -> Path:
     return base / "daily-bcp" / "notes.md"
 
 
+def default_library_dir() -> Path:
+    configured = os.environ.get("BCP_LIBRARY_DIR")
+    if configured:
+        return Path(configured).expanduser()
+    return default_memo_path().parent / "library"
+
+
 def ensure_memo_section(
     memo_path: Path,
     date: datetime,
@@ -47,6 +54,35 @@ def ensure_memo_section(
         f"Psalms: {', '.join(psalms) if psalms else 'None'}",
         f"First Lesson: {first}",
         f"Second Lesson: {second}",
+        "",
+        "Notes:",
+        "",
+    ]
+    with memo_path.open("a", encoding="utf-8") as handle:
+        if existing and not existing.endswith("\n"):
+            handle.write("\n")
+        handle.write("\n".join(section))
+
+
+def ensure_library_memo_section(
+    memo_path: Path,
+    date: datetime,
+    item_key: str,
+    item_title: str,
+) -> None:
+    marker = f"<!-- daily-bcp-library:{date:%Y-%m-%d}:{item_key} -->"
+    memo_path.parent.mkdir(parents=True, exist_ok=True)
+    if not memo_path.exists():
+        memo_path.write_text("# BCP Library Notes\n", encoding="utf-8")
+
+    existing = memo_path.read_text(encoding="utf-8")
+    if marker in existing:
+        return
+
+    section = [
+        "",
+        marker,
+        f"## {date:%Y-%m-%d} - {item_title}",
         "",
         "Notes:",
         "",

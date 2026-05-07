@@ -7,6 +7,8 @@ def usage_text(program: str = "bcp") -> str:
         f"       {program} collects [weekday|all] [--vim]\n"
         f"       {program} common [key|all] [--vim]\n"
         f"       {program} devotion [key|all] [--vim]\n"
+        f"       {program} library [item] [--vim]\n"
+        f"       {program} library --path\n"
         f"       {program} notes\n"
         f"       {program} history [--month YYYY-MM|mon]\n"
     )

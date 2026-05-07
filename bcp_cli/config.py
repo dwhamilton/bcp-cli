@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from .errors import first_use_text, usage_error, usage_text
+from .notes import default_library_dir
 
 
 @dataclass(frozen=True)
@@ -17,11 +18,14 @@ class Options:
     collect_day: str
     common_key: str
     devotion_key: str
+    library_key: str
+    library_path: bool
     vim_mode: bool
     compact_mode: bool
     history_month: str
     csv_path: Path
     collects_path: Path
+    library_dir: Path
 
 
 def default_data_dir() -> Path:
@@ -74,6 +78,8 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
     collect_day = ""
     common_key = ""
     devotion_key = ""
+    library_key = ""
+    library_path = False
     vim_mode = False
     compact_mode = False
     history_month = ""
@@ -100,6 +106,8 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
                 usage_error(f"{arg} requires a month value.", program)
             history_month = raw_args[index]
             month_provided = True
+        elif arg == "--path":
+            library_path = True
         elif arg.startswith("-"):
             usage_error(f"Unknown option: {arg}", program)
         else:
@@ -146,6 +154,19 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
         if len(command_args) > 1:
             usage_error("devotion accepts at most one key or all.", program)
         devotion_key = command_args[0] if command_args else ""
+    elif command == "library":
+        mode = "library"
+        if date_provided:
+            usage_error("--date is only supported for readings.", program)
+        if compact_mode:
+            usage_error("--compact is only supported for readings.", program)
+        if library_path and vim_mode:
+            usage_error("--vim is not supported for library --path.", program)
+        if library_path and command_args:
+            usage_error("library --path does not accept an item key.", program)
+        if len(command_args) > 1:
+            usage_error("library accepts at most one item key.", program)
+        library_key = command_args[0] if command_args else ""
     elif command == "notes":
         mode = "note"
         if date_provided:
@@ -173,6 +194,8 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
 
     if month_provided and mode != "history":
         usage_error("--month is only supported for history.", program)
+    if library_path and mode != "library":
+        usage_error("--path is only supported for library.", program)
 
     date = parse_date(date_arg, now)
     date_arg = date.strftime("%Y-%m-%d")
@@ -180,6 +203,7 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
     data_dir = default_data_dir()
     csv_path = Path(os.environ.get("BCP_CSV", data_dir / f"{month_slug}_{office}.csv"))
     collects_path = Path(os.environ.get("BCP_COLLECTS", data_dir / "collects.yaml"))
+    library_dir = default_library_dir()
 
     return Options(
         date_arg=date_arg,
@@ -188,11 +212,14 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
         collect_day=collect_day.lower(),
         common_key=common_key.lower(),
         devotion_key=devotion_key.lower(),
+        library_key=library_key,
+        library_path=library_path,
         vim_mode=vim_mode,
         compact_mode=compact_mode,
         history_month=history_month,
         csv_path=csv_path,
         collects_path=collects_path,
+        library_dir=library_dir,
     )
 
 
