@@ -11,7 +11,7 @@ from .data import (
     load_library_item,
     seed_library_samples,
 )
-from .history import format_history, record_reading
+from .history import format_history, record_reading, record_usage
 from .notes import default_memo_path, ensure_library_memo_section, open_notes
 from .pager import vim_pager
 from .prayers import print_common_prayers, print_daily_collect, print_devotion
@@ -26,22 +26,28 @@ def run(options: Options) -> None:
 
     if options.mode == "common":
         print_common_prayers(options)
+        if options.common_key:
+            record_usage("common")
         return
 
     if options.mode == "devotion":
         print_devotion(options)
+        if options.devotion_key:
+            record_usage("devotion")
         return
 
     if options.mode == "collect":
         print_daily_collect(date, options)
+        record_usage("collects")
         return
 
     if options.mode == "history":
-        print(format_history(month=options.history_month))
+        print(format_history(month=options.history_month, verbose=options.history_verbose))
         return
 
     if options.mode == "library":
-        print_library(options, date)
+        if print_library(options, date):
+            record_usage("library")
         return
 
     observance, psalms, first, second = find_readings(date, options.csv_path)
@@ -89,10 +95,10 @@ def run(options: Options) -> None:
             print(page)
 
 
-def print_library(options: Options, date: datetime) -> None:
+def print_library(options: Options, date: datetime) -> bool:
     if options.library_path:
         print(options.library_dir)
-        return
+        return False
 
     if not options.library_key:
         print(f"Library: {options.library_dir}")
@@ -104,7 +110,7 @@ def print_library(options: Options, date: datetime) -> None:
                 print(f"{item.key}: {item.title}")
             else:
                 print(item.key)
-        return
+        return False
 
     seed_library_samples(options.library_dir)
     item = load_library_item(library_item_path(options.library_dir, options.library_key))
@@ -124,7 +130,7 @@ def print_library(options: Options, date: datetime) -> None:
             "library",
             prepare_notes=lambda: ensure_library_memo_section(memo_path, date, item.key, item.title),
         )
-        return
+        return True
 
     print(item.title)
     print("=" * len(item.title))
@@ -136,6 +142,7 @@ def print_library(options: Options, date: datetime) -> None:
         print("-" * len(reading.title))
         print()
         print(reading.text)
+    return True
 
 
 def main(argv: list[str] | None = None) -> None:

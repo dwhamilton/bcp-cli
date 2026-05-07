@@ -23,7 +23,7 @@ from bcp_cli.data import (
     load_library_item,
     seed_library_samples,
 )
-from bcp_cli.history import format_history, load_history, record_reading
+from bcp_cli.history import format_history, load_history, record_reading, record_usage
 from bcp_cli.notes import editor_command, ensure_library_memo_section, ensure_memo_section
 from bcp_cli.pager import wrap_body_lines
 from bcp_cli.references import normalize_reference
@@ -79,6 +79,12 @@ class CliTests(unittest.TestCase):
         self.assertEqual(options.mode, "history")
         self.assertEqual(options.history_month, "2026-05")
 
+    def test_parse_history_verbose(self) -> None:
+        options = parse_options(["history", "--verbose"])
+
+        self.assertEqual(options.mode, "history")
+        self.assertTrue(options.history_verbose)
+
     def test_parse_history_month_abbreviation(self) -> None:
         options = parse_options(["history", "--month", "may"])
 
@@ -124,6 +130,10 @@ class CliTests(unittest.TestCase):
     def test_month_is_history_only(self) -> None:
         with self.assertRaises(SystemExit):
             parse_options(["readings", "--month", "2026-05"])
+
+    def test_verbose_is_history_only(self) -> None:
+        with self.assertRaises(SystemExit):
+            parse_options(["readings", "--verbose"])
 
     def test_library_rejects_readings_options(self) -> None:
         for args in [
@@ -339,6 +349,7 @@ readings:
 
             data = load_history(path)
             self.assertEqual(list(data["days"]), ["2026-05-07"])
+            self.assertEqual(data["days"]["2026-05-07"]["activities"], ["readings"])
             self.assertEqual(data["days"]["2026-05-07"]["offices"], ["morning"])
             self.assertEqual(data["days"]["2026-05-07"]["reading_dates"], ["2026-05-05"])
 
@@ -360,6 +371,7 @@ readings:
 
             data = load_history(path)
             self.assertEqual(list(data["days"]), ["2026-05-07"])
+            self.assertEqual(data["days"]["2026-05-07"]["activities"], ["readings"])
             self.assertEqual(data["days"]["2026-05-07"]["offices"], ["morning", "evening"])
             self.assertEqual(data["days"]["2026-05-07"]["reading_dates"], ["2026-05-05"])
             self.assertNotEqual(
@@ -381,6 +393,20 @@ readings:
             self.assertIn("2026-05-07", data["days"])
             self.assertNotIn("2026-05-05", data["days"])
 
+    def test_repeated_usage_updates_same_day_activities(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "history.json"
+            record_usage("collects", completed_at=datetime(2026, 5, 7, 9, 0), path=path)
+            record_usage("collects", completed_at=datetime(2026, 5, 7, 10, 0), path=path)
+            record_usage("common", completed_at=datetime(2026, 5, 7, 11, 0), path=path)
+
+            data = load_history(path)
+            self.assertEqual(data["days"]["2026-05-07"]["activities"], ["collects", "common"])
+            self.assertNotEqual(
+                data["days"]["2026-05-07"]["first_completed_at"],
+                data["days"]["2026-05-07"]["last_completed_at"],
+            )
+
     def test_successful_readings_run_records_usage(self) -> None:
         options = parse_options(["readings", "morning", "--date", "2026-05-05"])
 
@@ -395,26 +421,55 @@ readings:
         self.assertEqual(record.call_args.args[0], "morning")
         self.assertEqual(record.call_args.args[1], date(2026, 5, 5))
 
-    def test_non_readings_commands_do_not_record_usage(self) -> None:
+    def test_successful_content_commands_record_usage(self) -> None:
         commands = [
-            parse_options(["collects"]),
-            parse_options(["common"]),
-            parse_options(["devotion"]),
-            parse_options(["library"]),
-            parse_options(["notes"]),
-            parse_options(["history"]),
+            (parse_options(["collects"]), "collects"),
+            (parse_options(["common", "lords-prayer"]), "common"),
+            (parse_options(["common", "all"]), "common"),
+            (parse_options(["devotion", "daily-growth"]), "devotion"),
+            (parse_options(["devotion", "all"]), "devotion"),
         ]
 
         with patch("bcp_cli.cli.print_daily_collect"):
             with patch("bcp_cli.cli.print_common_prayers"):
                 with patch("bcp_cli.cli.print_devotion"):
-                    with patch("bcp_cli.cli.print_library"):
-                        with patch("bcp_cli.cli.open_notes"):
-                            with patch("bcp_cli.cli.format_history", return_value="history"):
-                                with patch("bcp_cli.cli.record_reading") as record:
-                                    for options in commands:
-                                        with redirect_stdout(StringIO()):
-                                            run(options)
+                    with patch("bcp_cli.cli.record_usage") as record:
+                        for options, activity in commands:
+                            with self.subTest(activity=activity, args=options.mode):
+                                with redirect_stdout(StringIO()):
+                                    run(options)
+
+        self.assertEqual([call.args[0] for call in record.call_args_list], [activity for _, activity in commands])
+
+    def test_successful_library_item_records_usage(self) -> None:
+        options = parse_options(["library", "item1"])
+
+        with patch("bcp_cli.cli.print_library", return_value=True):
+            with patch("bcp_cli.cli.record_usage") as record:
+                with redirect_stdout(StringIO()):
+                    run(options)
+
+        record.assert_called_once_with("library")
+
+    def test_utility_commands_do_not_record_usage(self) -> None:
+        commands = [
+            parse_options(["common"]),
+            parse_options(["devotion"]),
+            parse_options(["library"]),
+            parse_options(["library", "--path"]),
+            parse_options(["notes"]),
+            parse_options(["history"]),
+        ]
+
+        with patch("bcp_cli.cli.print_common_prayers"):
+            with patch("bcp_cli.cli.print_devotion"):
+                with patch("bcp_cli.cli.print_library", return_value=False):
+                    with patch("bcp_cli.cli.open_notes"):
+                        with patch("bcp_cli.cli.format_history", return_value="history"):
+                            with patch("bcp_cli.cli.record_usage") as record:
+                                for options in commands:
+                                    with redirect_stdout(StringIO()):
+                                        run(options)
 
         record.assert_not_called()
 
@@ -486,8 +541,9 @@ readings:
                 options = parse_options(["library", "item1"])
 
             output = StringIO()
-            with redirect_stdout(output):
-                run(options)
+            with patch("bcp_cli.cli.record_usage"):
+                with redirect_stdout(output):
+                    run(options)
 
         rendered = output.getvalue()
         self.assertIn("Item Title\n==========", rendered)
@@ -511,7 +567,8 @@ readings:
                 options = parse_options(["library", "item1", "--vim"], now=datetime(2026, 5, 7, 9, 0))
 
             with patch("bcp_cli.cli.vim_pager") as pager:
-                run(options)
+                with patch("bcp_cli.cli.record_usage"):
+                    run(options)
 
             pager.assert_called_once()
             self.assertEqual(pager.call_args.args[1], Path(directory) / "notes.md")
@@ -574,7 +631,7 @@ readings:
         with tempfile.TemporaryDirectory() as directory:
             output = format_history(path=Path(directory) / "history.json")
 
-        self.assertEqual(output, "No readings history yet. Run bcp readings to start tracking.")
+        self.assertEqual(output, "No history yet. Run bcp readings to start tracking.")
 
     def test_format_history_current_month(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -602,7 +659,43 @@ readings:
         self.assertIn(" *   *   -   -", output)
         self.assertIn("Used 4 of 7 days so far this month.", output)
         self.assertIn("Current streak: 0 days.", output)
-        self.assertIn("Last reading: 2026-05-05.", output)
+        self.assertIn("Last use: 2026-05-05.", output)
+
+    def test_format_history_verbose_includes_day_details(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "history.json"
+            path.write_text(
+                json.dumps(
+                    {
+                        "version": 1,
+                        "days": {
+                            "2026-05-05": {
+                                "activities": ["readings", "collects"],
+                                "offices": ["morning"],
+                                "reading_dates": ["2026-05-05"],
+                                "first_completed_at": "2026-05-05T09:00:00",
+                                "last_completed_at": "2026-05-05T10:00:00",
+                            },
+                            "2026-06-01": {
+                                "activities": ["common"],
+                                "first_completed_at": "2026-06-01T09:00:00",
+                                "last_completed_at": "2026-06-01T09:00:00",
+                            },
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            output = format_history(month="2026-05", verbose=True, today=date(2026, 6, 2), path=path)
+
+        self.assertIn("Details", output)
+        self.assertIn("2026-05-05:", output)
+        self.assertIn("activities: readings, collects", output)
+        self.assertIn("offices: morning", output)
+        self.assertIn("reading_dates: 2026-05-05", output)
+        self.assertIn("first_completed_at: 2026-05-05T09:00:00", output)
+        self.assertNotIn("2026-06-01:", output)
 
     def test_format_history_selected_month(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -624,7 +717,7 @@ readings:
 
         self.assertIn("May 2026", output)
         self.assertIn("Used 1 of 31 days this month.", output)
-        self.assertIn("Last reading: 2026-06-01.", output)
+        self.assertIn("Last use: 2026-06-01.", output)
 
     def test_format_history_selected_month_abbreviation_current_year(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

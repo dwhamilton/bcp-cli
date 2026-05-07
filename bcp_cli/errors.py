@@ -10,7 +10,7 @@ def usage_text(program: str = "bcp") -> str:
         f"       {program} library [item] [--vim]\n"
         f"       {program} library --path\n"
         f"       {program} notes\n"
-        f"       {program} history [--month YYYY-MM|mon]\n"
+        f"       {program} history [--month YYYY-MM|mon] [--verbose]\n"
     )
 
 

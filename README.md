@@ -3,7 +3,7 @@
 `daily-bcp` is a terminal-first Daily Office reader for the ACNA 2019 Book of
 Common Prayer lectionary. It gives you Morning Prayer or Evening Prayer
 readings, KJV Bible text, collects, common prayers, devotions, a keyboard-driven
-reader mode, persistent Markdown notes, and local readings history.
+reader mode, persistent Markdown notes, and local usage history.
 
 It is built for deliberate, text-first use: open the office, read linearly, and
 keep reflections in plain files you control.
@@ -140,7 +140,7 @@ Psalms remain verse-broken in compact mode.
 
 ## History
 
-Show a calendar-style view of reading consistency for the current month:
+Show a calendar-style view of use for the current month:
 
 ```sh
 bcp history
@@ -154,8 +154,17 @@ bcp history --month may
 bcp history --month dec
 ```
 
-Only successful `bcp readings` runs are tracked. The history date is the local
-day you ran the command, not the lectionary date requested with `--date`.
+Show the tracked details for each day:
+
+```sh
+bcp history --verbose
+```
+
+Successful readable-content commands are tracked: readings, collects, common
+prayers, devotions, and specific library items. Utility commands such as
+`notes`, `history`, `library`, and `library --path` are not tracked. The history
+date is the local day you ran the command, not the lectionary date requested
+with `--date`.
 
 ## Collects, Prayers, And Devotions
 
@@ -316,7 +325,7 @@ Current configuration is environment-variable based:
 - `BCP_DATA_DIR`: directory containing bundled-style CSV/YAML data files
 - `BCP_COLLECTS`: path to `collects.yaml`
 - `BCP_CSV`: override the lectionary CSV for a run
-- `BCP_HISTORY`: path to the readings history JSON file
+- `BCP_HISTORY`: path to the usage history JSON file
 - `BCP_LIBRARY_DIR`: path to the library readings folder
 
 By default, history is stored at

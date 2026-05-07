@@ -23,6 +23,7 @@ class Options:
     vim_mode: bool
     compact_mode: bool
     history_month: str
+    history_verbose: bool
     csv_path: Path
     collects_path: Path
     library_dir: Path
@@ -83,8 +84,10 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
     vim_mode = False
     compact_mode = False
     history_month = ""
+    history_verbose = False
     date_provided = False
     month_provided = False
+    verbose_provided = False
 
     args: list[str] = []
     index = 0
@@ -100,6 +103,9 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
             date_provided = True
         elif arg == "--compact":
             compact_mode = True
+        elif arg == "--verbose":
+            history_verbose = True
+            verbose_provided = True
         elif arg == "--month":
             index += 1
             if index >= len(raw_args):
@@ -194,6 +200,8 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
 
     if month_provided and mode != "history":
         usage_error("--month is only supported for history.", program)
+    if verbose_provided and mode != "history":
+        usage_error("--verbose is only supported for history.", program)
     if library_path and mode != "library":
         usage_error("--path is only supported for library.", program)
 
@@ -217,6 +225,7 @@ def parse_options(argv: list[str] | None = None, now: datetime | None = None) ->
         vim_mode=vim_mode,
         compact_mode=compact_mode,
         history_month=history_month,
+        history_verbose=history_verbose,
         csv_path=csv_path,
         collects_path=collects_path,
         library_dir=library_dir,
