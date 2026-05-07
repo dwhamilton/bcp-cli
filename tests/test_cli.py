@@ -118,6 +118,7 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(raised.exception.code, 0)
         self.assertIn("bcp readings", output.getvalue())
+        self.assertIn("bcp history --verbose", output.getvalue())
 
     def test_positional_date_is_rejected(self) -> None:
         with self.assertRaises(SystemExit):

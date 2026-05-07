@@ -30,6 +30,7 @@ def first_use_text(program: str = "bcp") -> str:
         f"  {program} readings morning\n"
         f"  {program} readings --date tomorrow\n"
         f"  {program} collects sat\n"
-        f"  {program} history\n\n"
+        f"  {program} history\n"
+        f"  {program} history --verbose\n\n"
         f"Run `{program} --help` for all options."
     )
