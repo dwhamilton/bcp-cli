@@ -361,6 +361,37 @@ readings:
                         normalize_reference(row["first_lesson"])
                         normalize_reference(row["second_lesson"])
 
+    def test_bundled_partial_psalm_ranges_fit_kjv_verse_counts(self) -> None:
+        kjv_psalm_lengths = {
+            18: 50,
+            37: 40,
+            68: 35,
+            69: 36,
+            78: 72,
+            89: 52,
+            105: 45,
+            106: 48,
+            107: 43,
+            119: 176,
+        }
+
+        for path in sorted(default_data_dir().glob("*.csv")):
+            with self.subTest(path=path.name):
+                with path.open(newline="", encoding="utf-8") as handle:
+                    for row in csv.DictReader(handle):
+                        for part in row["sixty_day_psalter_ep"].split(","):
+                            part = part.strip()
+                            if ":" not in part:
+                                continue
+                            psalm_text, verses = part.split(":", 1)
+                            psalm = int(psalm_text)
+                            _, last_text = verses.split("-", 1)
+                            self.assertLessEqual(
+                                int(last_text),
+                                kjv_psalm_lengths[psalm],
+                                f"{path.name} day {row['day']} Psalm {part}",
+                            )
+
     def test_record_reading_creates_day_record(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "history.json"
