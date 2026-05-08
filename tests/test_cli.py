@@ -737,7 +737,72 @@ readings:
 
             notes = path.read_text(encoding="utf-8")
 
-        self.assertIn("## 2026-05-07 - Morning Prayer", notes)
+        self.assertIn("## 2026-05-07 AM - Ps 9; Deut 6; Luke 4", notes)
+        self.assertNotIn("<!-- daily-bcp:", notes)
+        self.assertNotIn("## 2026-05-07 - Morning Prayer", notes)
+        self.assertNotIn("Psalms:", notes)
+        self.assertNotIn("First Lesson:", notes)
+        self.assertNotIn("Second Lesson:", notes)
+        self.assertNotIn("Notes:", notes)
+
+    def test_daily_note_section_creation_is_idempotent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "notes.md"
+            reading_date = datetime(2026, 5, 7, 9, 0)
+
+            ensure_memo_section(
+                path,
+                reading_date,
+                "Morning Prayer",
+                "morning",
+                ["Psalm 9"],
+                "Deuteronomy 6",
+                "Luke 4",
+            )
+            ensure_memo_section(
+                path,
+                reading_date,
+                "Morning Prayer",
+                "morning",
+                ["Psalm 9"],
+                "Deuteronomy 6",
+                "Luke 4",
+            )
+
+            notes = path.read_text(encoding="utf-8")
+
+        self.assertEqual(notes.count("## 2026-05-07 AM -"), 1)
+
+    def test_legacy_daily_note_marker_prevents_duplicate_section(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "notes.md"
+            path.write_text(
+                "\n".join(
+                    [
+                        "# BCP Notes",
+                        "",
+                        "<!-- daily-bcp:2026-05-07:morning -->",
+                        "## 2026-05-07 - Morning Prayer",
+                        "",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            ensure_memo_section(
+                path,
+                datetime(2026, 5, 7, 9, 0),
+                "Morning Prayer",
+                "morning",
+                ["Psalm 9"],
+                "Deuteronomy 6",
+                "Luke 4",
+            )
+
+            notes = path.read_text(encoding="utf-8")
+
+        self.assertNotIn("## 2026-05-07 AM -", notes)
+        self.assertEqual(notes.count("<!-- daily-bcp:2026-05-07:morning -->"), 1)
 
     def test_editor_command_respects_visual(self) -> None:
         with patch.dict("os.environ", {"VISUAL": "code --wait", "EDITOR": "vim"}, clear=True):
