@@ -94,21 +94,18 @@ def ensure_library_memo_section(
     item_key: str,
     item_title: str,
 ) -> None:
-    marker = f"<!-- daily-bcp-library:{date:%Y-%m-%d}:{item_key} -->"
     memo_path.parent.mkdir(parents=True, exist_ok=True)
     if not memo_path.exists():
         memo_path.write_text("# BCP Library Notes\n", encoding="utf-8")
 
     existing = memo_path.read_text(encoding="utf-8")
-    if marker in existing:
+    heading = f"## {date:%Y-%m-%d} - {item_key}"
+    if heading in existing.splitlines():
         return
 
     section = [
         "",
-        marker,
-        f"## {date:%Y-%m-%d} - {item_title}",
-        "",
-        "Notes:",
+        heading,
         "",
     ]
     with memo_path.open("a", encoding="utf-8") as handle:

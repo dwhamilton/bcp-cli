@@ -706,8 +706,10 @@ readings:
             pager.call_args.kwargs["prepare_notes"]()
             notes = Path(directory, "notes.md").read_text(encoding="utf-8")
 
-        self.assertIn("## 2026-05-07 - Item Title", notes)
-        self.assertIn("<!-- daily-bcp-library:2026-05-07:item1 -->", notes)
+        self.assertIn("## 2026-05-07 - item1", notes)
+        self.assertNotIn("## 2026-05-07 - Item Title", notes)
+        self.assertNotIn("<!-- daily-bcp-library:", notes)
+        self.assertNotIn("Notes:", notes)
 
     def test_library_note_section_creation_is_idempotent(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -719,7 +721,7 @@ readings:
 
             notes = path.read_text(encoding="utf-8")
 
-        self.assertEqual(notes.count("## 2026-05-07 - Item Title"), 1)
+        self.assertEqual(notes.count("## 2026-05-07 - item1"), 1)
 
     def test_daily_note_section_still_writes_to_new_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
