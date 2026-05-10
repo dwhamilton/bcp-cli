@@ -169,6 +169,9 @@ The current YAML reader in `data.py` is intentionally narrow. It supports the
 specific file shape currently used by `collects.yaml`; it is not a general YAML
 parser.
 
+User-managed library YAML is documented in `docs/library-yaml.md`. That document
+describes the current narrow parser behavior for files read by `bcp library`.
+
 ## Configuration
 
 Configuration is environment-variable based:

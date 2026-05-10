@@ -285,6 +285,9 @@ readings:
       Another reading here.
 ```
 
+For the full schema, parser limits, and agent-readable conversion rules, see
+[`docs/library-yaml.md`](docs/library-yaml.md).
+
 ## Paged Reader
 
 Add `--pages` to read in a cleared, keyboard-driven terminal view:
